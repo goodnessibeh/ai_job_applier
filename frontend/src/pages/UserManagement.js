@@ -220,11 +220,9 @@ const UserManagement = () => {
     });
     
     try {
-      let response;
-      
       if (userDialog.mode === 'create') {
         // Create new user
-        response = await api.post('/api/admin/users', userDialog.userData);
+        await api.post('/api/admin/users', userDialog.userData);
         
         setSnackbar({
           open: true,
@@ -233,7 +231,7 @@ const UserManagement = () => {
         });
       } else {
         // Update existing user
-        response = await api.put(`/api/admin/users/${userDialog.userData.id}`, userDialog.userData);
+        await api.put(`/api/admin/users/${userDialog.userData.id}`, userDialog.userData);
         
         setSnackbar({
           open: true,

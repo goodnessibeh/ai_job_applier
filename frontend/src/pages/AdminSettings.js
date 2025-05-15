@@ -26,7 +26,6 @@ import SaveIcon from '@mui/icons-material/Save';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import LockIcon from '@mui/icons-material/Lock';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import api from '../services/api';
 
@@ -138,7 +137,7 @@ const AdminSettings = () => {
     setSaving(true);
     
     try {
-      const response = await api.post('/api/settings/admin', { settings });
+      await api.post('/api/settings/admin', { settings });
       
       setSnackbar({
         open: true,
@@ -172,7 +171,7 @@ const AdminSettings = () => {
     setLoading(true);
     
     try {
-      const response = await api.post('/api/settings/admin/test-smtp', { 
+      await api.post('/api/settings/admin/test-smtp', { 
         smtp_settings: {
           server: settings.smtp_server,
           port: settings.smtp_port,
@@ -215,7 +214,7 @@ const AdminSettings = () => {
     setLoading(true);
     
     try {
-      const response = await api.post('/api/settings/admin/test-api-key', { 
+      await api.post('/api/settings/admin/test-api-key', { 
         provider,
         api_key: apiKey
       });

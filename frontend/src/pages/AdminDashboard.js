@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Container, 
   Typography, 
@@ -37,6 +38,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import api from '../services/api';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     users: 0,
@@ -153,7 +155,7 @@ const AdminDashboard = () => {
     });
     
     try {
-      const response = await api.post('/api/settings/admin/change-password', {
+      await api.post('/api/settings/admin/change-password', {
         current_password: passwordDialog.currentPassword,
         new_password: passwordDialog.newPassword
       });
