@@ -1,0 +1,57 @@
+**/.claude/settings.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+# Keeping custom lib directories
+# lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.env
+venv/
+# Keep data files
+!backend/app/data/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Database
+*.sqlite
+*.db
+
+# Misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temp files
+/backend/temp/*
+!/backend/temp/.gitkeep
+/backend/app/temp/*
+!/backend/app/temp/.gitkeep

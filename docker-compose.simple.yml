@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.simple
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - FLASK_APP=wsgi.py
+      - FLASK_DEBUG=1
+      - SECRET_KEY=your_secret_key_here
+      - OPENAI_API_KEY=your_openai_api_key_here
+    command: gunicorn --bind 0.0.0.0:5000 --workers 2 wsgi:app
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app:cached
+      # Don't mount node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000/api
+    depends_on:
+      - backend
