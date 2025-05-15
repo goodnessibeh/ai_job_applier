@@ -13,14 +13,16 @@ import React, { useState, useEffect, createContext } from 'react';
   import UserProfile from './pages/UserProfile';
   import Login from './pages/Login';
   import Register from './pages/Register';
-  import AdminLogin from './pages/AdminLogin';
-  import AdminDashboard from './pages/AdminDashboard';
-  import AdminSettings from './pages/AdminSettings';
-  import UserManagement from './pages/UserManagement';
+  // Admin Pages
+  import AdminDashboard from './pages/admin/Dashboard';
+  import AdminSettings from './pages/admin/Settings';
+  import UserManagement from './pages/admin/UserManagement';
+  import AdminLogin from './pages/admin/Login';
 
   // Components
   import Navbar from './components/Navbar';
   import Sidebar from './components/Sidebar';
+  import AdminLayout from './components/admin/AdminLayout';
 
   // Services
   import { checkAuth } from './services/authService';
@@ -94,17 +96,18 @@ import React, { useState, useEffect, createContext } from 'react';
     return (
       <AuthContext.Provider value={{ ...authState, refreshAuth: verifyAuth }}>
         <Box sx={{ display: 'flex' }}>
-          {authState.isAuthenticated && <Navbar />}
-          {authState.isAuthenticated && <Sidebar />}
+          {/* Only show Navbar and Sidebar for non-admin authenticated pages */}
+          {authState.isAuthenticated && !window.location.pathname.startsWith('/admin') && <Navbar />}
+          {authState.isAuthenticated && !window.location.pathname.startsWith('/admin') && <Sidebar />}
 
           <Box
             component="main"
             sx={{
               flexGrow: 1,
               p: { xs: 2, sm: 3 },
-              mt: authState.isAuthenticated ? 8 : 0,
-              ml: authState.isAuthenticated ? { xs: 0, sm: 30 } : 0,
-              width: authState.isAuthenticated ? 'auto' : '100%'
+              mt: authState.isAuthenticated && !window.location.pathname.startsWith('/admin') ? 8 : 0,
+              ml: authState.isAuthenticated && !window.location.pathname.startsWith('/admin') ? { xs: 0, sm: 30 } : 0,
+              width: authState.isAuthenticated && !window.location.pathname.startsWith('/admin') ? 'auto' : '100%'
             }}
           >
             <Routes>
@@ -141,16 +144,12 @@ import React, { useState, useEffect, createContext } from 'react';
                 authState.isAuthenticated ? <UserProfile /> : <Navigate to="/login" />
               } />
 
-              {/* Admin Protected Routes */}
-              <Route path="/admin" element={
-                authState.isAuthenticated && authState.isAdmin ? <AdminDashboard /> : <Navigate to="/admin/login" />
-              } />
-              <Route path="/admin/settings" element={
-                authState.isAuthenticated && authState.isAdmin ? <AdminSettings /> : <Navigate to="/admin/login" />
-              } />
-              <Route path="/admin/users" element={
-                authState.isAuthenticated && authState.isAdmin ? <UserManagement /> : <Navigate to="/admin/login" />
-              } />
+              {/* Admin Protected Routes with Layout */}
+              <Route element={<AdminLayout />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/settings" element={<AdminSettings />} />
+                <Route path="/admin/users" element={<UserManagement />} />
+              </Route>
 
               {/* Redirects */}
               <Route path="*" element={<Navigate to={authState.isAuthenticated ? "/" : "/login"} />} />

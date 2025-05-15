@@ -106,17 +106,44 @@ def test_smtp():
         return jsonify({'error': 'No data provided'}), 400
     
     from app.modules.notifications.email_service import EmailService
+    import ssl
+    import smtplib
     
-    smtp_server = data.get('server')
-    smtp_port = data.get('port')
-    username = data.get('username')
-    password = data.get('password')
-    from_email = data.get('from_email')
+    smtp_server = data.get('smtp_server', data.get('server'))
+    smtp_port = data.get('smtp_port', data.get('port'))
+    username = data.get('smtp_username', data.get('username'))
+    password = data.get('smtp_password', data.get('password'))
+    from_email = data.get('smtp_from_email', data.get('from_email'))
     test_recipient = data.get('test_recipient', current_user.email)
-    send_test_email = data.get('send_test_email', True)
+    send_test_email = data.get('send_test_email', False)  # Default to not sending test email
     
     if not all([smtp_server, smtp_port, username, password, from_email]):
         return jsonify({'error': 'Missing required SMTP parameters'}), 400
+    
+    # Test the connection directly
+    try:
+        # Create secure connection
+        context = ssl.create_default_context()
+        with smtplib.SMTP(smtp_server, int(smtp_port), timeout=10) as server:
+            server.ehlo()
+            server.starttls(context=context)
+            server.ehlo()
+            server.login(username, password)
+            
+            # If we reached here, connection was successful
+            success, message = True, "SMTP connection test successful!"
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide more user-friendly error messages
+        if "Authentication" in error_message:
+            return jsonify({'success': False, 'message': "Authentication failed. Please check your username and password."}), 400
+        elif "getaddrinfo failed" in error_message or "Name or service not known" in error_message:
+            return jsonify({'success': False, 'message': "Could not connect to SMTP server. Please check the server address."}), 400
+        elif "Connection refused" in error_message:
+            return jsonify({'success': False, 'message': "Connection refused. Please check if the SMTP server is accepting connections on the specified port."}), 400
+        else:
+            return jsonify({'success': False, 'message': f"SMTP connection test failed: {error_message}"}), 400
     
     # Create email service with provided settings
     email_service = EmailService(
@@ -127,14 +154,8 @@ def test_smtp():
         from_email=from_email
     )
     
-    # Test the connection
-    success, message = email_service.test_connection()
-    
-    if not success:
-        return jsonify({'success': False, 'message': message}), 400
-    
     # If connection successful and user wants to send a test email
-    if send_test_email and test_recipient:
+    if success and send_test_email and test_recipient:
         try:
             # Send a test notification email
             sample_application = {
@@ -368,6 +389,78 @@ def save_system_settings():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@bp.route('/test-api-key', methods=['POST'])
+@login_required
+def test_api_key():
+    """Test API key for Anthropic or OpenAI (admin only)"""
+    # Only allow admins to test API keys
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized. Only admins can test API keys'}), 403
+        
+    data = request.json
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    provider = data.get('provider')
+    api_key = data.get('api_key')
+    
+    if not provider or not api_key:
+        return jsonify({'error': 'Missing required parameters: provider and api_key'}), 400
+    
+    if provider not in ['anthropic', 'openai']:
+        return jsonify({'error': 'Invalid provider. Must be either "anthropic" or "openai"'}), 400
+    
+    # Test the API key by making a simple request
+    try:
+        if provider == 'anthropic':
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            # Make a simple request to verify the key works
+            response = client.messages.create(
+                model="claude-3-sonnet-20240229",
+                max_tokens=10,
+                messages=[
+                    {"role": "user", "content": "Hello, this is a test."}
+                ]
+            )
+            # If we got here, the API key is valid
+            return jsonify({
+                'success': True, 
+                'message': 'Anthropic API key is valid and working'
+            })
+            
+        elif provider == 'openai':
+            import openai
+            client = openai.OpenAI(api_key=api_key)
+            # Make a simple request to verify the key works
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "user", "content": "Hello, this is a test."}
+                ],
+                max_tokens=10
+            )
+            # If we got here, the API key is valid
+            return jsonify({
+                'success': True, 
+                'message': 'OpenAI API key is valid and working'
+            })
+    
+    except Exception as e:
+        error_message = str(e)
+        
+        # Provide more user-friendly error messages
+        if "AuthenticationError" in error_message or "Unauthorized" in error_message or "Invalid API key" in error_message:
+            return jsonify({
+                'success': False, 
+                'message': f"Authentication failed. Please check your {provider} API key."
+            }), 400
+        else:
+            return jsonify({
+                'success': False, 
+                'message': f"{provider.title()} API test failed: {error_message}"
+            }), 400
 
 @bp.route('/admin/change-password', methods=['POST'])
 @login_required
