@@ -76,10 +76,10 @@ def search_jobs(criteria):
             site_jobs = _search_site(site.lower(), criteria)
             all_jobs.extend(site_jobs)
     
-    # If no jobs found through regular search, use fallback demo data
+    # If no jobs found, return empty list
     if not all_jobs:
-        logger.info("No jobs found through regular search, using fallback demo data")
-        all_jobs = _generate_demo_results(criteria)
+        logger.info("No jobs found through API search")
+        return []
     
     # Remove duplicates (based on job title and company)
     unique_jobs = _remove_duplicate_jobs(all_jobs)
@@ -142,32 +142,7 @@ def _search_site(site, criteria):
     # Get portal configurations
     portal_configs = Config.get_job_portal_configs()
     
-    # Check for web scraping support for Glassdoor and Indeed
-    if site in ['glassdoor', 'indeed']:
-        try:
-            # First try with web scraping
-            use_web_scraping = Config.WEB_SCRAPING_ENABLED if hasattr(Config, 'WEB_SCRAPING_ENABLED') else True
-            
-            if use_web_scraping:
-                logger.info(f"Attempting to scrape {site} for jobs")
-                scraper = get_scraper(site)
-                if scraper:
-                    # Extract criteria
-                    keywords = criteria.get('keywords', [])
-                    location = criteria.get('location', '')
-                    job_type = criteria.get('job_type', '')
-                    
-                    # Scrape jobs
-                    scraped_jobs = scraper.search_jobs(keywords, location, job_type)
-                    
-                    if scraped_jobs:
-                        logger.info(f"Successfully scraped {len(scraped_jobs)} jobs from {site}")
-                        return scraped_jobs
-                    else:
-                        logger.warning(f"No jobs found via web scraping on {site}, trying API")
-        except Exception as e:
-            logger.error(f"Error during web scraping for {site}: {str(e)}")
-            # Continue to API
+    # Skip web scraping, only use API
     
     # Try API if available and enabled
     if site in portal_configs and portal_configs[site]['enabled']:
@@ -363,90 +338,3 @@ def _calculate_match_score(job, keywords, user_preferences=None):
     
     return score, reasons
 
-def _generate_demo_results(criteria):
-    """Generate demo job results based on search criteria"""
-    keywords = criteria.get('keywords', [])
-    location = criteria.get('location', 'Remote')
-    job_type = criteria.get('job_type', 'Full-time')
-    
-    # Format keywords for use in job titles/descriptions
-    keyword_string = ', '.join(keywords)
-    primary_keyword = keywords[0] if keywords else "Software"
-    
-    # Generate a list of demo jobs
-    demo_jobs = []
-    
-    # Common tech companies
-    companies = [
-        "Google", "Microsoft", "Amazon", "Apple", "Meta", "Netflix", "Twitter",
-        "Airbnb", "Dropbox", "Shopify", "Slack", "Zoom", "Square", "Stripe",
-        "LinkedIn", "GitHub", "GitLab", "Atlassian", "Salesforce", "Adobe"
-    ]
-    
-    # Job title templates
-    job_titles = [
-        f"Senior {primary_keyword} Engineer",
-        f"{primary_keyword} Developer",
-        f"{primary_keyword} Specialist",
-        f"Lead {primary_keyword} Architect",
-        f"{primary_keyword} Manager",
-        f"{primary_keyword} Consultant",
-        f"Principal {primary_keyword} Engineer",
-        f"{primary_keyword} Analyst",
-        f"Director of {primary_keyword}",
-        f"{primary_keyword} Team Lead"
-    ]
-    
-    # Description template
-    description_template = """
-    We are looking for a talented {title} to join our team. The ideal candidate has experience with {keywords}.
-    
-    Responsibilities:
-    - Design and develop {keyword_focus} solutions
-    - Collaborate with cross-functional teams
-    - Maintain and improve existing {keyword_focus} systems
-    - Stay up-to-date with latest {keyword_focus} technologies
-    
-    Requirements:
-    - {experience} years of experience in {keyword_focus}
-    - Strong understanding of {related_skills}
-    - Excellent problem-solving and communication skills
-    - BS/MS in Computer Science or related field
-    
-    We offer competitive salary and benefits, flexible work arrangements, and opportunities for growth.
-    """
-    
-    # Generate 15 demo jobs
-    for i in range(15):
-        # Mix and match companies, titles
-        company = companies[i % len(companies)]
-        title = job_titles[i % len(job_titles)]
-        
-        # Randomize days ago (1-10)
-        days_ago = (i % 10) + 1
-        
-        # Create demo job
-        job = {
-            'id': f"demo-{i+1}",
-            'title': title,
-            'company': company,
-            'location': location,
-            'job_type': job_type,
-            'posted_date': f"{days_ago} days ago",
-            'description': description_template.format(
-                title=title,
-                keywords=keyword_string,
-                keyword_focus=primary_keyword,
-                experience=str(3 + (i % 5)),
-                related_skills=", ".join(keywords) if len(keywords) > 1 else primary_keyword
-            ),
-            'url': f"https://example.com/jobs/{i+1}",
-            'source': 'demo',
-            'is_demo': True,
-            'application_type': "external",
-            'salary': f"${80 + (i*10)}k - ${120 + (i*10)}k"
-        }
-        
-        demo_jobs.append(job)
-    
-    return demo_jobs

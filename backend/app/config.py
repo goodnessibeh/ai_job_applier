@@ -17,8 +17,8 @@ class Config:
     ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
     USE_ANTHROPIC = os.environ.get('USE_ANTHROPIC', 'True').lower() in ('true', '1', 't')
     
-    # Web scraping settings
-    WEB_SCRAPING_ENABLED = os.environ.get('WEB_SCRAPING_ENABLED', 'True').lower() in ('true', '1', 't')
+    # Web scraping settings - disabled by default
+    WEB_SCRAPING_ENABLED = os.environ.get('WEB_SCRAPING_ENABLED', 'False').lower() in ('true', '1', 't')
     
     # RapidAPI settings
     RAPIDAPI_KEY = os.environ.get('RAPIDAPI_KEY', '')
