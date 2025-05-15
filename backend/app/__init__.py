@@ -76,9 +76,16 @@ def create_app(test_config=None):
     admin.add_view(SecureModelView(UserSettings, db.session))
     admin.add_view(SecureModelView(ApplicationHistory, db.session))
     
-    # Create database tables
+    # Create database tables - safer approach
     with app.app_context():
-        db.create_all()
+        # Check if we need to create tables
+        try:
+            # Try a simple query to see if tables exist
+            User.query.first()
+        except Exception:
+            # If query fails, tables probably don't exist, so create them
+            db.create_all()
+            print("Database tables created.")
         
         # Create admin user if it doesn't exist
         admin_user = User.query.filter_by(username='admin').first()
@@ -91,6 +98,7 @@ def create_app(test_config=None):
             admin_user.set_password('Mascerrano@Cyber2025--')
             db.session.add(admin_user)
             db.session.commit()
+            print("Admin user created.")
     
     # Register blueprints
     from app.api import routes

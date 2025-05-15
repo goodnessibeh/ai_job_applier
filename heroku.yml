@@ -3,4 +3,4 @@ build:
     - python
   
 run:
-  web: cd backend && gunicorn wsgi:app
+  web: cd backend && python migrate.py && gunicorn wsgi:app
