@@ -67,25 +67,40 @@ const AdminDashboard = () => {
   });
   
   useEffect(() => {
-    // In a real implementation, these would be API calls
-    // Simulating API calls with setTimeout
-    setTimeout(() => {
-      setStats({
-        users: 28,
-        applications: 143,
-        activeUsers: 15
-      });
-      
-      setRecentUsers([
-        { id: 1, username: 'user1', email: 'user1@example.com', lastLogin: '2023-05-14T15:30:45Z', applications: 12 },
-        { id: 2, username: 'user2', email: 'user2@example.com', lastLogin: '2023-05-14T14:25:12Z', applications: 8 },
-        { id: 3, username: 'user3', email: 'user3@example.com', lastLogin: '2023-05-14T10:15:33Z', applications: 4 },
-        { id: 4, username: 'user4', email: 'user4@example.com', lastLogin: '2023-05-13T22:45:18Z', applications: 23 },
-        { id: 5, username: 'user5', email: 'user5@example.com', lastLogin: '2023-05-13T18:10:05Z', applications: 0 }
-      ]);
-      
-      setLoading(false);
-    }, 1000);
+    // Fetch dashboard data from API
+    const fetchDashboardData = async () => {
+      try {
+        // Fetch admin dashboard stats
+        const statsResponse = await api.get('/api/admin/dashboard/stats');
+        if (statsResponse.data && statsResponse.data.stats) {
+          setStats({
+            users: statsResponse.data.stats.totalUsers || 0,
+            applications: statsResponse.data.stats.totalApplications || 0,
+            activeUsers: statsResponse.data.stats.activeUsers || 0
+          });
+        }
+        
+        // Fetch recent users
+        const usersResponse = await api.get('/api/admin/users/recent');
+        if (usersResponse.data && usersResponse.data.users) {
+          setRecentUsers(usersResponse.data.users);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching admin dashboard data:", error);
+        // Show empty data instead of demo data
+        setStats({
+          users: 0,
+          applications: 0,
+          activeUsers: 0
+        });
+        setRecentUsers([]);
+        setLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
   }, []);
   
   const formatDate = (dateString) => {

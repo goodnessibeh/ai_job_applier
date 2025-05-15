@@ -67,7 +67,7 @@ class Config:
     LINKEDIN_REDIRECT_URI = os.environ.get('LINKEDIN_REDIRECT_URI', '')
     
     # Application settings
-    SIMULATION_MODE = os.environ.get('SIMULATION_MODE', 'True').lower() in ('true', '1', 't')
+    SIMULATION_MODE = os.environ.get('SIMULATION_MODE', 'False').lower() in ('true', '1', 't')
     MAX_APPLICATIONS_PER_DAY = int(os.environ.get('MAX_APPLICATIONS_PER_DAY', '10'))
     
     @classmethod

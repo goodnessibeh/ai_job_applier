@@ -489,6 +489,65 @@ def test_api_key():
             'error': str(e)
         }), 500
 
+@bp.route('/dashboard/stats', methods=['GET'])
+@login_required
+@admin_required
+def get_dashboard_stats():
+    """Get admin dashboard statistics"""
+    try:
+        # Get user count
+        user_count = User.query.count()
+        
+        # Get application count
+        from ..models import ApplicationHistory
+        application_count = ApplicationHistory.query.count()
+        
+        # Get active users (users who logged in during the last 24 hours)
+        from datetime import timedelta
+        active_cutoff = datetime.utcnow() - timedelta(hours=24)
+        active_users = User.query.filter(User.last_login >= active_cutoff).count()
+        
+        return jsonify({
+            'stats': {
+                'totalUsers': user_count,
+                'totalApplications': application_count,
+                'activeUsers': active_users
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error getting dashboard stats: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/users/recent', methods=['GET'])
+@login_required
+@admin_required
+def get_recent_users():
+    """Get recent users for admin dashboard"""
+    try:
+        # Get recent users with last login
+        recent_users = User.query.order_by(User.last_login.desc().nullslast()).limit(5).all()
+        users_list = []
+        
+        for user in recent_users:
+            # Get application count for each user
+            from ..models import ApplicationHistory
+            app_count = ApplicationHistory.query.filter_by(user_id=user.id).count()
+            
+            users_list.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'lastLogin': user.last_login.isoformat() if user.last_login else None,
+                'applications': app_count
+            })
+        
+        return jsonify({
+            'users': users_list
+        })
+    except Exception as e:
+        logger.error(f"Error getting recent users: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @bp.route('/stats', methods=['GET'])
 @login_required
 @admin_required
