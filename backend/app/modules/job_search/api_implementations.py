@@ -1210,7 +1210,6 @@ def _fetch_hiring_manager_info(config, job_id=None):
                 })
         
         # Update our cache
-        global hiring_manager_cache
         hiring_manager_cache = managers_by_company
         
         # If a specific job_id was requested, find that manager

@@ -61,6 +61,11 @@ class Config:
     # Authentication settings
     TOKEN_EXPIRY_HOURS = int(os.environ.get('TOKEN_EXPIRY_HOURS', '24'))
     
+    # LinkedIn OAuth settings
+    LINKEDIN_CLIENT_ID = os.environ.get('LINKEDIN_CLIENT_ID', '')
+    LINKEDIN_CLIENT_SECRET = os.environ.get('LINKEDIN_CLIENT_SECRET', '')
+    LINKEDIN_REDIRECT_URI = os.environ.get('LINKEDIN_REDIRECT_URI', '')
+    
     # Application settings
     SIMULATION_MODE = os.environ.get('SIMULATION_MODE', 'True').lower() in ('true', '1', 't')
     MAX_APPLICATIONS_PER_DAY = int(os.environ.get('MAX_APPLICATIONS_PER_DAY', '10'))

@@ -102,8 +102,20 @@ def create_app(test_config=None):
     from app.api import settings_routes
     app.register_blueprint(settings_routes.bp)
     
+    # Register old user_routes with a different name to avoid conflicts
     from app.api import user_routes
-    app.register_blueprint(user_routes.bp)
+    app.register_blueprint(user_routes.bp, name='user_api_v1')
+    
+    # Register admin routes and allow 'admin' name to be overridden
+    from app.api import admin_routes
+    app.register_blueprint(admin_routes.bp, name='admin_api_v1')
+    
+    # Register new structured blueprints with unique names using 'name=' parameter
+    from app.routes.admin import bp as admin_bp
+    app.register_blueprint(admin_bp, name='admin_v2')
+    
+    from app.routes.user import bp as user_bp
+    app.register_blueprint(user_bp, name='user_v2')
     
     # Ensure upload directories exist
     os.makedirs(os.path.join(app.root_path, 'static', 'uploads', 'profile_pictures'), exist_ok=True)
