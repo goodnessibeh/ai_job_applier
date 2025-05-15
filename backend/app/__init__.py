@@ -34,7 +34,6 @@ def create_app(test_config=None):
     # Set session cookie attributes for better security and proper handling
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
-        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(app.instance_path, 'ai_job_applier.sqlite')),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         # Session configuration
         SESSION_TYPE='filesystem',
@@ -45,6 +44,17 @@ def create_app(test_config=None):
         SESSION_COOKIE_SAMESITE='Lax',  # Prevents CSRF in modern browsers
         SESSION_COOKIE_SECURE=os.environ.get('FLASK_ENV') == 'production',  # HTTPS only in production
     )
+    
+    # Handle Heroku Postgres connection
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        # Fix for Heroku - needs to replace postgres:// with postgresql://
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    else:
+        # Use SQLite for local development
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'ai_job_applier.sqlite')
     
     if test_config is None:
         # Load the instance config, if it exists, when not testing
