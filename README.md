@@ -1,8 +1,8 @@
 # AI Job Applier (CareerPilot)
 
-An AI-powered job application system that automates resume parsing, job searching, and application submission. Deployed on Heroku at https://careerpilot-ai.herokuapp.com.
+An AI-powered job application system that automates resume parsing, job searching, and application submission. Deployed on Heroku at https://careerpilot-ai-530f45da3f80.herokuapp.com/.
 
-Heroku deployment is automated via Git hooks with Python buildpack.
+Heroku deployment is automated via Git hooks with Python buildpack. Use `./push-to-heroku.sh` to push to both Heroku and GitHub in one command.
 
 ## Features
 
