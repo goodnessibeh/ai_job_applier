@@ -13,8 +13,8 @@ from app.modules.application_customizer import customizer
 from app.modules.application_submitter import submitter
 from app.modules.notifications.email_service import EmailService
 from app.modules.export.csv_exporter import CSVExporter
-from app.api import settings_routes, auth_routes, user_routes
-from ..models import db, ApplicationHistory, UserSettings
+from app.api import settings_routes, auth_routes, user_routes, admin_routes
+from ..models import db, ApplicationHistory, UserSettings, User
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ bp = Blueprint('api', __name__, url_prefix='/api')
 bp.register_blueprint(settings_routes.bp)
 bp.register_blueprint(auth_routes.bp)
 bp.register_blueprint(user_routes.bp)
+bp.register_blueprint(admin_routes.bp)
 
 @bp.route('/parse-resume', methods=['POST'])
 @login_required
@@ -47,6 +48,7 @@ def parse_resume():
 def improve_resume():
     """Get AI-powered improvement suggestions for a resume"""
     from app.modules.resume_parser.resume_improver import ResumeImprover
+    import traceback
     
     data = request.json
     if not data or 'resume_data' not in data:
@@ -60,29 +62,65 @@ def improve_resume():
         # Get user settings to determine preferred AI provider
         user_settings = UserSettings.query.filter_by(user_id=current_user.id).first()
         
-        # Initialize resume improver with user settings and/or explicit API keys
+        # Create user settings if they don't exist yet
+        if not user_settings:
+            user_settings = UserSettings(user_id=current_user.id)
+            db.session.add(user_settings)
+            db.session.commit()
+        
+        # Get API keys from admin settings if not provided explicitly
+        admin_settings = None
+        
+        # Find admin users and get their settings
+        admins = db.session.query(User).filter_by(is_admin=True).all()
+        for admin in admins:
+            admin_settings = UserSettings.query.filter_by(user_id=admin.id).first()
+            if admin_settings and (admin_settings.anthropic_api_key or admin_settings.openai_api_key):
+                break
+        
+        # Use admin keys if available (if user doesn't have their own)
+        if admin_settings:
+            if not anthropic_api_key and admin_settings.anthropic_api_key:
+                anthropic_api_key = admin_settings.anthropic_api_key
+            
+            if not openai_api_key and admin_settings.openai_api_key:
+                openai_api_key = admin_settings.openai_api_key
+        
+        # Initialize resume improver with provided keys or admin keys
         improver = ResumeImprover(
             user_id=current_user.id,
             anthropic_api_key=anthropic_api_key,
             openai_api_key=openai_api_key
         )
         
+        # Check if we have any API keys available
+        if not anthropic_api_key and not openai_api_key and not improver.anthropic_api_key and not improver.openai_api_key:
+            return jsonify({
+                'success': False,
+                'error': 'No API keys available. Please contact an administrator to set up API keys or provide your own.'
+            }), 400
+        
         # Generate improvement suggestions
         result = improver.generate_improvement_suggestions(data['resume_data'])
         
         # Add provider info to response if not already included
         if 'provider' not in result and user_settings:
-            if user_settings.use_anthropic and user_settings.anthropic_api_key:
+            if improver.anthropic_api_key:
                 result['provider'] = 'anthropic'
-            elif user_settings.use_openai and user_settings.openai_api_key:
+            elif improver.openai_api_key:
                 result['provider'] = 'openai'
             else:
                 result['provider'] = 'unknown'
         
         return jsonify(result)
     except Exception as e:
-        logger.error(f"Error improving resume: {str(e)}")
-        return jsonify({'error': str(e), 'success': False}), 500
+        error_traceback = traceback.format_exc()
+        logger.error(f"Error improving resume: {str(e)}\n{error_traceback}")
+        return jsonify({
+            'error': str(e), 
+            'traceback': error_traceback,
+            'success': False
+        }), 500
 
 @bp.route('/search-jobs', methods=['POST'])
 @login_required

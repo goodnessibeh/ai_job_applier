@@ -104,6 +104,7 @@ const ResumeImprovement = ({ resumeData }) => {
       <Alert severity="info" sx={{ my: 2 }}>
         This feature uses AI to analyze your resume and provide personalized improvement suggestions.
         The system will use OpenAI GPT-4 by default, or Anthropic Claude if configured by an administrator.
+        {error && <Box sx={{ mt: 1, fontWeight: 'medium', color: 'error.main' }}>{error}</Box>}
       </Alert>
       
       <Grid container spacing={2}>

@@ -477,8 +477,9 @@ const AdminDashboard = () => {
                     }
                   }}
                   startIcon={<PersonIcon />}
+                  onClick={() => navigate('/admin/users')}
                 >
-                  View All Users
+                  Manage Users
                 </Button>
                 
                 <Button 
@@ -494,6 +495,7 @@ const AdminDashboard = () => {
                     }
                   }}
                   startIcon={<BusinessCenterIcon />}
+                  onClick={() => navigate('/admin/reports')}
                 >
                   Application Reports
                 </Button>
@@ -511,6 +513,7 @@ const AdminDashboard = () => {
                     }
                   }}
                   startIcon={<SettingsIcon />}
+                  onClick={() => navigate('/admin/settings')}
                 >
                   System Settings
                 </Button>
@@ -633,6 +636,7 @@ const AdminDashboard = () => {
                             sx={{
                               borderRadius: 1
                             }}
+                            onClick={() => navigate(`/admin/users`)}
                           >
                             Manage
                           </Button>

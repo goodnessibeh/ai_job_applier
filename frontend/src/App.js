@@ -15,6 +15,8 @@ import React, { useState, useEffect, createContext } from 'react';
   import Register from './pages/Register';
   import AdminLogin from './pages/AdminLogin';
   import AdminDashboard from './pages/AdminDashboard';
+  import AdminSettings from './pages/AdminSettings';
+  import UserManagement from './pages/UserManagement';
 
   // Components
   import Navbar from './components/Navbar';
@@ -141,8 +143,13 @@ import React, { useState, useEffect, createContext } from 'react';
 
               {/* Admin Protected Routes */}
               <Route path="/admin" element={
-                authState.isAuthenticated && authState.isAdmin ? <AdminDashboard /> : <Navigate to="/admin/login"
-  />
+                authState.isAuthenticated && authState.isAdmin ? <AdminDashboard /> : <Navigate to="/admin/login" />
+              } />
+              <Route path="/admin/settings" element={
+                authState.isAuthenticated && authState.isAdmin ? <AdminSettings /> : <Navigate to="/admin/login" />
+              } />
+              <Route path="/admin/users" element={
+                authState.isAuthenticated && authState.isAdmin ? <UserManagement /> : <Navigate to="/admin/login" />
               } />
 
               {/* Redirects */}
