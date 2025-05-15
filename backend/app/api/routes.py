@@ -13,7 +13,7 @@ from app.modules.application_customizer import customizer
 from app.modules.application_submitter import submitter
 from app.modules.notifications.email_service import EmailService
 from app.modules.export.csv_exporter import CSVExporter
-from app.api import settings_routes, auth_routes
+from app.api import settings_routes, auth_routes, user_routes
 from ..models import db, ApplicationHistory, UserSettings
 
 # Setup logging
@@ -24,6 +24,7 @@ bp = Blueprint('api', __name__, url_prefix='/api')
 # Register other route blueprints
 bp.register_blueprint(settings_routes.bp)
 bp.register_blueprint(auth_routes.bp)
+bp.register_blueprint(user_routes.bp)
 
 @bp.route('/parse-resume', methods=['POST'])
 @login_required
@@ -40,6 +41,48 @@ def parse_resume():
         return jsonify({'data': parsed_data})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@bp.route('/improve-resume', methods=['POST'])
+@login_required
+def improve_resume():
+    """Get AI-powered improvement suggestions for a resume"""
+    from app.modules.resume_parser.resume_improver import ResumeImprover
+    
+    data = request.json
+    if not data or 'resume_data' not in data:
+        return jsonify({'error': 'No resume data provided'}), 400
+    
+    try:
+        # Check if user provided API keys
+        anthropic_api_key = data.get('anthropic_api_key')
+        openai_api_key = data.get('openai_api_key')
+        
+        # Get user settings to determine preferred AI provider
+        user_settings = UserSettings.query.filter_by(user_id=current_user.id).first()
+        
+        # Initialize resume improver with user settings and/or explicit API keys
+        improver = ResumeImprover(
+            user_id=current_user.id,
+            anthropic_api_key=anthropic_api_key,
+            openai_api_key=openai_api_key
+        )
+        
+        # Generate improvement suggestions
+        result = improver.generate_improvement_suggestions(data['resume_data'])
+        
+        # Add provider info to response if not already included
+        if 'provider' not in result and user_settings:
+            if user_settings.use_anthropic and user_settings.anthropic_api_key:
+                result['provider'] = 'anthropic'
+            elif user_settings.use_openai and user_settings.openai_api_key:
+                result['provider'] = 'openai'
+            else:
+                result['provider'] = 'unknown'
+        
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error improving resume: {str(e)}")
+        return jsonify({'error': str(e), 'success': False}), 500
 
 @bp.route('/search-jobs', methods=['POST'])
 @login_required

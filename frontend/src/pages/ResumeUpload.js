@@ -11,20 +11,51 @@ import {
   CardContent,
   CardActions,
   Stack,
-  Divider 
+  Divider,
+  Tabs,
+  Tab 
 } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ArticleIcon from '@mui/icons-material/Article';
 import DeleteIcon from '@mui/icons-material/Delete';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 import useResume from '../hooks/useResume';
 import ResumeViewer from '../components/ResumeViewer';
+import ResumeImprovement from '../components/ResumeImprovement';
+
+// Custom TabPanel component for switching between tabs
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`resume-tabpanel-${index}`}
+      aria-labelledby={`resume-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ pt: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 const ResumeUpload = () => {
   const { resumeData, loading, error, uploadResume, clearResume } = useResume();
   const [file, setFile] = useState(null);
   const [uploadError, setUploadError] = useState(null);
+  const [activeTab, setActiveTab] = useState(0);
+  
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -174,8 +205,42 @@ const ResumeUpload = () => {
         </Grid>
         
         <Grid item xs={12} md={6}>
-          {/* Preview parsed resume */}
-          <ResumeViewer resumeData={resumeData} />
+          {resumeData && (
+            <Paper sx={{ p: 2, mb: 3 }}>
+              <Tabs 
+                value={activeTab} 
+                onChange={handleTabChange} 
+                aria-label="resume tabs"
+                variant="fullWidth"
+              >
+                <Tab 
+                  icon={<VisibilityIcon />} 
+                  iconPosition="start" 
+                  label="Resume View" 
+                  id="resume-tab-0"
+                  aria-controls="resume-tabpanel-0"
+                />
+                <Tab 
+                  icon={<LightbulbIcon />} 
+                  iconPosition="start" 
+                  label="Improvement Suggestions" 
+                  id="resume-tab-1"
+                  aria-controls="resume-tabpanel-1"
+                  disabled={!resumeData}
+                />
+              </Tabs>
+              
+              <TabPanel value={activeTab} index={0}>
+                {/* Preview parsed resume */}
+                <ResumeViewer resumeData={resumeData} />
+              </TabPanel>
+              
+              <TabPanel value={activeTab} index={1}>
+                {/* Resume improvement suggestions */}
+                <ResumeImprovement resumeData={resumeData} />
+              </TabPanel>
+            </Paper>
+          )}
           
           {/* Quick actions */}
           {resumeData && (
