@@ -51,7 +51,8 @@ export const login = async (credentials) => {
  */
 export const adminLogin = async (credentials) => {
   try {
-    const response = await api.post('/api/auth/admin/login', credentials);
+    const response = await api.post('/api/admin/login', credentials);
+    setAuthToken(true); // Set auth token on successful login
     return response.data;
   } catch (error) {
     throw error;

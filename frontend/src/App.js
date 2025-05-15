@@ -14,10 +14,10 @@ import React, { useState, useEffect, createContext } from 'react';
   import Login from './pages/Login';
   import Register from './pages/Register';
   // Admin Pages
-  import AdminDashboard from './pages/admin/Dashboard';
-  import AdminSettings from './pages/admin/Settings';
-  import UserManagement from './pages/admin/UserManagement';
-  import AdminLogin from './pages/admin/Login';
+  import AdminDashboard from './pages/AdminDashboard';
+  import AdminSettings from './pages/AdminSettings';
+  import UserManagement from './pages/UserManagement';
+  import AdminLogin from './pages/AdminLogin';
 
   // Components
   import Navbar from './components/Navbar';

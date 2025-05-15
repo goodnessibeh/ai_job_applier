@@ -8,7 +8,7 @@ const AdminLayout = () => {
   const user = getCurrentUser();
   
   // Check if user is admin
-  if (!user || user.role !== 'admin') {
+  if (!user || !user.is_admin) {
     return <Navigate to="/admin/login" />;
   }
 
