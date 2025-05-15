@@ -1,1 +1,1 @@
-web: cd backend && python app/migrate.py && gunicorn wsgi:app
+web: cd backend && python -m app.migrate && gunicorn wsgi:app
