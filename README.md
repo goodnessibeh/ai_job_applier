@@ -1,6 +1,6 @@
-# AI Job Applier
+# AI Job Applier (CareerPilot)
 
-An AI-powered job application system that automates resume parsing, job searching, and application submission.
+An AI-powered job application system that automates resume parsing, job searching, and application submission. Deployed on Heroku at https://careerpilot-ai.herokuapp.com
 
 ## Features
 
