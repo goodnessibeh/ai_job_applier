@@ -22,36 +22,70 @@ const AnalyticCard = ({ title, value, icon, trend, trendValue, color }) => {
   };
 
   return (
-    <Paper sx={{ p: 2, height: '100%' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+    <Paper 
+      sx={{ 
+        p: { xs: 2, sm: 3 }, 
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        '&:hover': {
+          boxShadow: (theme) => theme.shadows[4],
+          transform: 'translateY(-4px)'
+        }
+      }}
+      elevation={2}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Box sx={{ 
           mr: 2, 
           backgroundColor: `${color}.light`, 
           borderRadius: '50%', 
-          p: 1,
+          p: 1.5,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
           {icon}
         </Box>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body1" color="text.secondary" fontWeight="medium">
           {title}
         </Typography>
       </Box>
-      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
+      <Typography 
+        variant="h4" 
+        sx={{ 
+          fontWeight: 'bold', 
+          mb: 2,
+          mt: 1,
+          fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' } 
+        }}
+      >
         {value}
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          mt: 'auto',
+          pt: 1, 
+          borderTop: '1px solid',
+          borderColor: 'divider' 
+        }}
+      >
         {getTrendIcon()}
-        <Typography variant="caption" color={
-          trend === 'up' ? 'success.main' : 
-          trend === 'down' ? 'error.main' : 
-          'text.secondary'
-        }>
+        <Typography 
+          variant="body2" 
+          color={
+            trend === 'up' ? 'success.main' : 
+            trend === 'down' ? 'error.main' : 
+            'text.secondary'
+          }
+          fontWeight="medium"
+        >
           {trendValue} 
         </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
           vs last week
         </Typography>
       </Box>
@@ -134,48 +168,63 @@ const ApplicationAnalytics = ({ applications }) => {
   }, [applications]);
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} sm={6} md={3}>
-        <AnalyticCard 
-          title="Total Applications" 
-          value={analytics.totalApps} 
-          icon={<BusinessIcon sx={{ color: 'primary.main' }} />}
-          trend={analytics.totalTrend}
-          trendValue={analytics.totalTrendValue}
-          color="primary"
-        />
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <AnalyticCard 
-          title="Success Rate" 
-          value={`${analytics.successRate}%`} 
-          icon={<CheckCircleIcon sx={{ color: 'success.main' }} />}
-          trend={analytics.successTrend}
-          trendValue={analytics.successTrendValue}
-          color="success"
-        />
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <AnalyticCard 
-          title="Avg. Applications / Day" 
-          value={analytics.avgPerDay} 
-          icon={<AccessTimeIcon sx={{ color: 'info.main' }} />}
-          trend={analytics.avgTrend}
-          trendValue={analytics.avgTrendValue}
-          color="info"
-        />
-      </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <AnalyticCard 
-          title="Most Active Platform" 
-          value={analytics.mostActivePlatform} 
-          icon={<BusinessIcon sx={{ color: 'warning.main' }} />}
-          trend="neutral"
-          trendValue="No change"
-          color="warning"
-        />
-      </Grid>
-    </Grid>
+    <Box sx={{ mb: { xs: 2, md: 4 } }}>
+      <Paper
+        sx={{
+          p: { xs: 2, sm: 3 },
+          mb: 2,
+          borderRadius: 2,
+          backgroundColor: (theme) => theme.palette.background.default
+        }}
+        elevation={0}
+      >
+        <Typography variant="h6" gutterBottom fontWeight="medium" color="primary">
+          Application Statistics
+        </Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={3}>
+            <AnalyticCard 
+              title="Total Applications" 
+              value={analytics.totalApps} 
+              icon={<BusinessIcon sx={{ color: 'primary.main' }} />}
+              trend={analytics.totalTrend}
+              trendValue={analytics.totalTrendValue}
+              color="primary"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <AnalyticCard 
+              title="Success Rate" 
+              value={`${analytics.successRate}%`} 
+              icon={<CheckCircleIcon sx={{ color: 'success.main' }} />}
+              trend={analytics.successTrend}
+              trendValue={analytics.successTrendValue}
+              color="success"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <AnalyticCard 
+              title="Avg. Applications / Day" 
+              value={analytics.avgPerDay} 
+              icon={<AccessTimeIcon sx={{ color: 'info.main' }} />}
+              trend={analytics.avgTrend}
+              trendValue={analytics.avgTrendValue}
+              color="info"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <AnalyticCard 
+              title="Most Active Platform" 
+              value={analytics.mostActivePlatform} 
+              icon={<BusinessIcon sx={{ color: 'warning.main' }} />}
+              trend="neutral"
+              trendValue="No change"
+              color="warning"
+            />
+          </Grid>
+        </Grid>
+      </Paper>
+    </Box>
   );
 };
 

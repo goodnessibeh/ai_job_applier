@@ -47,52 +47,188 @@ const RecentApplicationsList = ({ applications, limit = 5 }) => {
   const displayedApplications = applications.slice(0, limit);
 
   return (
-    <Paper sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">Recent Applications</Typography>
+    <Paper 
+      sx={{ 
+        p: { xs: 2, sm: 3 },
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column',
+        borderRadius: 2,
+        boxShadow: (theme) => theme.shadows[2]
+      }}
+      elevation={2}
+    >
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 2
+        }}
+      >
+        <Typography 
+          variant="h6" 
+          fontWeight="bold"
+          color="primary"
+        >
+          Recent Applications
+        </Typography>
         <Chip 
           label={`${applications.length} Total`} 
           size="small" 
           variant="outlined" 
+          color="primary"
+          sx={{ 
+            fontWeight: 'medium',
+            borderWidth: 1.5
+          }}
         />
       </Box>
       
       {applications.length === 0 ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexGrow: 1 }}>
-          <Typography variant="body1" color="text.secondary">No applications submitted yet</Typography>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            flexGrow: 1,
+            backgroundColor: (theme) => theme.palette.background.paper,
+            borderRadius: 2,
+            p: 3,
+            my: 2
+          }}
+        >
+          <ViewListIcon 
+            sx={{ 
+              fontSize: '3rem', 
+              color: 'text.secondary',
+              opacity: 0.5,
+              mb: 2 
+            }} 
+          />
+          <Typography variant="body1" color="text.secondary" fontWeight="medium">
+            No applications submitted yet
+          </Typography>
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+            Start applying to jobs to see your application history here
+          </Typography>
         </Box>
       ) : (
         <>
-          <List sx={{ flexGrow: 1 }}>
+          <List 
+            sx={{ 
+              flexGrow: 1,
+              '& .MuiListItem-root': {
+                borderRadius: 1,
+                mb: 0.5,
+                '&:hover': {
+                  backgroundColor: 'action.hover'
+                }
+              }
+            }}
+          >
             {displayedApplications.map((app, index) => (
               <React.Fragment key={index}>
-                <ListItem button onClick={() => app.job_id && navigate(`/job/${app.job_id}`)}>
-                  <ListItemIcon>
-                    {getPlatformIcon(app.platform)}
+                <ListItem 
+                  button 
+                  onClick={() => app.job_id && navigate(`/job/${app.job_id}`)}
+                  sx={{ 
+                    py: 1.5,
+                    transition: 'transform 0.2s',
+                    '&:hover': {
+                      transform: 'translateX(4px)'
+                    }
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: { xs: 40, sm: 44 }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: (theme) => theme.palette.action.hover
+                      }}
+                    >
+                      {getPlatformIcon(app.platform)}
+                    </Box>
                   </ListItemIcon>
                   <ListItemText 
                     primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography component="span" variant="body1" sx={{ mr: 1 }}>
+                      <Box 
+                        sx={{ 
+                          display: 'flex', 
+                          alignItems: { xs: 'flex-start', sm: 'center' },
+                          flexDirection: { xs: 'column', sm: 'row' },
+                          gap: { xs: 0.5, sm: 0 }
+                        }}
+                      >
+                        <Typography 
+                          component="span" 
+                          variant="body1" 
+                          sx={{ 
+                            mr: 1,
+                            fontWeight: 'medium'
+                          }}
+                        >
                           {app.position || 'Job Position'}
                         </Typography>
-                        <Typography component="span" variant="body2" color="text.secondary">
+                        <Typography 
+                          component="span" 
+                          variant="body2" 
+                          color="text.secondary"
+                        >
                           at {app.company || 'Company'}
                         </Typography>
                       </Box>
                     } 
                     secondary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                        <Typography component="span" variant="body2">
+                      <Box 
+                        sx={{ 
+                          display: 'flex', 
+                          alignItems: { xs: 'flex-start', sm: 'center' },
+                          flexDirection: { xs: 'column', sm: 'row' },
+                          gap: { xs: 0.75, sm: 1.5 },
+                          mt: 0.5,
+                          flexWrap: 'wrap'
+                        }}
+                      >
+                        <Typography 
+                          component="span" 
+                          variant="body2"
+                          sx={{
+                            fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                          }}
+                        >
                           {formatTimestamp(app.timestamp)}
                         </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                        <Box 
+                          sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center'
+                          }}
+                        >
                           {app.success ? (
                             <CheckCircleIcon fontSize="small" color="success" sx={{ mr: 0.5 }} />
                           ) : (
                             <ErrorIcon fontSize="small" color="error" sx={{ mr: 0.5 }} />
                           )}
-                          <Typography component="span" variant="body2" color={app.success ? "success.main" : "error.main"}>
+                          <Typography 
+                            component="span" 
+                            variant="body2" 
+                            color={app.success ? "success.main" : "error.main"}
+                            fontWeight="medium"
+                            sx={{
+                              fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                            }}
+                          >
                             {app.success ? 'Submitted' : 'Failed'}
                           </Typography>
                         </Box>
@@ -100,15 +236,19 @@ const RecentApplicationsList = ({ applications, limit = 5 }) => {
                           <Chip 
                             label={app.application_type === 'easy_apply' ? 'Easy Apply' : 'External'} 
                             size="small" 
-                            variant="outlined"
-                            sx={{ ml: 1, height: 20, fontSize: '0.625rem' }}
+                            color={app.application_type === 'easy_apply' ? "info" : "warning"}
+                            sx={{ 
+                              height: 20, 
+                              fontSize: { xs: '0.6rem', sm: '0.625rem' },
+                              fontWeight: 'medium'
+                            }}
                           />
                         )}
                       </Box>
                     }
                   />
                 </ListItem>
-                {index < displayedApplications.length - 1 && <Divider />}
+                {index < displayedApplications.length - 1 && <Divider sx={{ opacity: 0.6 }} />}
               </React.Fragment>
             ))}
           </List>
@@ -118,6 +258,8 @@ const RecentApplicationsList = ({ applications, limit = 5 }) => {
               endIcon={<ViewListIcon />}
               onClick={() => navigate('/history')}
               size="small"
+              color="primary"
+              sx={{ fontWeight: 'medium' }}
             >
               View All Applications
             </Button>

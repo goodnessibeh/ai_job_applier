@@ -19,6 +19,8 @@ const ApplicationTrendsChart = ({ applicationData }) => {
   useEffect(() => {
     if (applicationData && applicationData.length > 0) {
       generateChartData();
+    } else {
+      setChartData([]);
     }
   }, [applicationData, timeframe, chartType]);
 
@@ -47,8 +49,11 @@ const ApplicationTrendsChart = ({ applicationData }) => {
       'external': { count: 0, color: '#FF6B6B' }
     };
     
+    // Filter data based on timeframe
+    const filteredData = filterDataByTimeframe(applicationData);
+    
     // Count applications by platform
-    applicationData.forEach(app => {
+    filteredData.forEach(app => {
       const platform = (app.platform || 'external').toLowerCase();
       if (platforms[platform]) {
         platforms[platform].count++;
@@ -57,17 +62,22 @@ const ApplicationTrendsChart = ({ applicationData }) => {
       }
     });
     
-    return Object.entries(platforms).map(([name, data]) => ({
-      name,
-      value: data.count,
-      color: data.color
-    }));
+    return Object.entries(platforms)
+      .filter(([_, data]) => data.count > 0) // Only include platforms with data
+      .map(([name, data]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1), // Capitalize platform name
+        value: data.count,
+        color: data.color
+      }));
   };
   
   const generateStatusChartData = () => {
+    // Filter data based on timeframe
+    const filteredData = filterDataByTimeframe(applicationData);
+    
     // Count applications by status (success/failure)
-    const success = applicationData.filter(app => app.success).length;
-    const failure = applicationData.filter(app => !app.success).length;
+    const success = filteredData.filter(app => app.success).length;
+    const failure = filteredData.filter(app => !app.success).length;
     
     return [
       { name: 'Successful', value: success, color: '#4CAF50' },
@@ -76,14 +86,34 @@ const ApplicationTrendsChart = ({ applicationData }) => {
   };
   
   const generateTypeChartData = () => {
+    // Filter data based on timeframe
+    const filteredData = filterDataByTimeframe(applicationData);
+    
     // Count applications by type (easy apply/external)
-    const easyApply = applicationData.filter(app => app.application_type === 'easy_apply').length;
-    const external = applicationData.filter(app => app.application_type === 'external').length;
+    const easyApply = filteredData.filter(app => app.application_type === 'easy_apply').length;
+    const external = filteredData.filter(app => app.application_type === 'external').length;
     
     return [
       { name: 'Easy Apply', value: easyApply, color: '#2196F3' },
       { name: 'External', value: external, color: '#FF9800' }
     ];
+  };
+  
+  const filterDataByTimeframe = (data) => {
+    const now = new Date();
+    
+    if (timeframe === 'weekly') {
+      // Filter to last 7 days
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return data.filter(item => new Date(item.timestamp) >= weekAgo);
+    } else if (timeframe === 'monthly') {
+      // Filter to last 30 days
+      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      return data.filter(item => new Date(item.timestamp) >= monthAgo);
+    }
+    
+    // All time - return all data
+    return data;
   };
 
   const handleTimeframeChange = (event, newTimeframe) => {
@@ -96,13 +126,19 @@ const ApplicationTrendsChart = ({ applicationData }) => {
     setChartType(event.target.value);
   };
 
-  // Basic bar chart rendering
-  // In a real implementation, we would use a library like Chart.js, Recharts, or Victory
+  // Enhanced bar chart rendering
   const renderBarChart = () => {
-    const maxValue = Math.max(...chartData.map(item => item.value));
+    const maxValue = Math.max(...chartData.map(item => item.value), 1); // Ensure at least 1 for division
     
     return (
-      <Box sx={{ display: 'flex', mt: 3, height: 250, alignItems: 'flex-end' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        mt: 4, 
+        height: { xs: 220, sm: 250, md: 280 }, 
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        px: { xs: 1, sm: 3 }
+      }}>
         {chartData.map((item, index) => (
           <Box 
             key={index} 
@@ -110,44 +146,152 @@ const ApplicationTrendsChart = ({ applicationData }) => {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              mx: 1,
-              flexGrow: 1
+              mx: { xs: 0.5, sm: 1, md: 2 },
+              flexGrow: 1,
+              maxWidth: { xs: '60px', sm: '80px', md: '100px' }
             }}
           >
             <Box 
               sx={{ 
-                width: '100%', 
-                maxWidth: 60,
+                width: '100%',
                 backgroundColor: item.color,
                 height: `${maxValue > 0 ? (item.value / maxValue) * 200 : 0}px`,
                 minHeight: item.value > 0 ? 20 : 0,
-                borderRadius: 1,
+                borderRadius: '4px 4px 0 0',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'flex-start',
                 color: 'white',
                 fontWeight: 'bold',
-                pt: 0.5
+                pt: 1,
+                position: 'relative',
+                transition: 'height 0.5s ease-in-out',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                '&:hover': {
+                  opacity: 0.9,
+                  transform: 'translateY(-5px)',
+                  boxShadow: '0 5px 10px rgba(0,0,0,0.15)'
+                }
               }}
             >
-              {item.value}
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontWeight: 'bold',
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                }}
+              >
+                {item.value}
+              </Typography>
             </Box>
-            <Typography variant="body2" sx={{ mt: 1, fontSize: '0.75rem', textAlign: 'center' }}>
-              {item.name}
-            </Typography>
+            <Box 
+              sx={{ 
+                mt: 1,
+                p: 1,
+                width: '100%',
+                textAlign: 'center',
+                backgroundColor: (theme) => theme.palette.background.paper,
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'divider'
+              }}
+            >
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.85rem' }, 
+                  fontWeight: 'medium'
+                }}
+              >
+                {item.name}
+              </Typography>
+            </Box>
           </Box>
         ))}
       </Box>
     );
   };
 
+  // Empty state illustration
+  const renderEmptyState = () => (
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: 250,
+        backgroundColor: (theme) => theme.palette.background.paper,
+        borderRadius: 2,
+        p: 3,
+        mt: 2
+      }}
+    >
+      <Box 
+        sx={{ 
+          width: '100px', 
+          height: '80px', 
+          display: 'flex',
+          mb: 2,
+          opacity: 0.7
+        }}
+      >
+        {/* Simple bar chart illustration */}
+        <Box sx={{ width: '20px', height: '60%', backgroundColor: 'primary.light', mx: 0.5, borderRadius: 1 }} />
+        <Box sx={{ width: '20px', height: '80%', backgroundColor: 'success.light', mx: 0.5, borderRadius: 1 }} />
+        <Box sx={{ width: '20px', height: '40%', backgroundColor: 'warning.light', mx: 0.5, borderRadius: 1 }} />
+        <Box sx={{ width: '20px', height: '70%', backgroundColor: 'info.light', mx: 0.5, borderRadius: 1 }} />
+      </Box>
+      <Typography variant="body1" color="text.secondary" fontWeight="medium">
+        No application data available
+      </Typography>
+      <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1, maxWidth: '80%' }}>
+        Start applying to jobs to see your application trends
+      </Typography>
+    </Box>
+  );
+
   return (
-    <Paper sx={{ p: 3, height: '100%' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">Application Trends</Typography>
+    <Paper 
+      sx={{ 
+        p: { xs: 2, sm: 3 }, 
+        height: '100%',
+        borderRadius: 2,
+        boxShadow: (theme) => theme.shadows[2]
+      }}
+      elevation={3}
+    >
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'flex-start', sm: 'center' }, 
+        gap: { xs: 2, sm: 0 },
+        mb: 2 
+      }}>
+        <Typography 
+          variant="h6" 
+          fontWeight="bold" 
+          color="primary"
+          sx={{ mb: { xs: 1, sm: 0 } }}
+        >
+          Application Trends
+        </Typography>
         
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <FormControl variant="outlined" size="small" sx={{ minWidth: 150, mr: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { xs: 'flex-start', md: 'center' },
+          gap: 2
+        }}>
+          <FormControl 
+            variant="outlined" 
+            size="small" 
+            sx={{ 
+              minWidth: 120,
+              width: { xs: '100%', md: 'auto' } 
+            }}
+          >
             <InputLabel id="chart-type-label">View By</InputLabel>
             <Select
               labelId="chart-type-label"
@@ -166,6 +310,13 @@ const ApplicationTrendsChart = ({ applicationData }) => {
             exclusive
             onChange={handleTimeframeChange}
             size="small"
+            aria-label="timeframe selection"
+            sx={{ 
+              '& .MuiToggleButton-root': {
+                px: { xs: 1, sm: 2 },
+                py: 0.75
+              }
+            }}
           >
             <ToggleButton value="weekly">Weekly</ToggleButton>
             <ToggleButton value="monthly">Monthly</ToggleButton>
@@ -174,13 +325,9 @@ const ApplicationTrendsChart = ({ applicationData }) => {
         </Box>
       </Box>
       
-      {applicationData.length === 0 ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 250 }}>
-          <Typography variant="body1" color="text.secondary">No application data available</Typography>
-        </Box>
-      ) : (
-        renderBarChart()
-      )}
+      <Divider sx={{ mb: 2 }} />
+      
+      {applicationData.length === 0 ? renderEmptyState() : renderBarChart()}
     </Paper>
   );
 };
