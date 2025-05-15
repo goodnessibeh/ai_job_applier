@@ -21,14 +21,8 @@ import {
   StepLabel
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
-import StarIcon from '@mui/icons-material/Star';
-import BoltIcon from '@mui/icons-material/Bolt';
-import SettingsIcon from '@mui/icons-material/Settings';
 import { getResumeImprovement } from '../services/userService';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
-import AssignmentIcon from '@mui/icons-material/Assignment';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import WorkIcon from '@mui/icons-material/Work';
 import SchoolIcon from '@mui/icons-material/School';
@@ -48,7 +42,6 @@ const ResumeImprovement = ({ resumeData }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [suggestions, setSuggestions] = useState(null);
-  const [apiKeyInput, setApiKeyInput] = useState('');
   const [step, setStep] = useState(0);
   const [aiProvider, setAiProvider] = useState(null);
   
@@ -62,11 +55,8 @@ const ResumeImprovement = ({ resumeData }) => {
     setError(null);
     
     try {
-      // Use the provided API key or the one from the input field
-      const apiKey = customApiKey || apiKeyInput;
-      
-      // Get improvement suggestions from the API
-      const result = await getResumeImprovement(resumeData, apiKey);
+      // Get improvement suggestions from the API - don't use apiKeyInput anymore
+      const result = await getResumeImprovement(resumeData, customApiKey);
       
       if (result.success) {
         // Set the AI provider used for suggestions

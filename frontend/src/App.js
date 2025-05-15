@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext } from 'react';
-  import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+  import { Routes, Route, Navigate } from 'react-router-dom';
   import { Box, CircularProgress, Typography } from '@mui/material';
 
   // Pages
@@ -10,6 +10,7 @@ import React, { useState, useEffect, createContext } from 'react';
   import ApplicationForm from './pages/ApplicationForm';
   import ApplicationHistory from './pages/ApplicationHistory';
   import Settings from './pages/Settings';
+  import UserProfile from './pages/UserProfile';
   import Login from './pages/Login';
   import Register from './pages/Register';
   import AdminLogin from './pages/AdminLogin';
@@ -20,7 +21,7 @@ import React, { useState, useEffect, createContext } from 'react';
   import Sidebar from './components/Sidebar';
 
   // Services
-  import { checkAuth, isAdmin } from './services/authService';
+  import { checkAuth } from './services/authService';
 
   // Create Auth Context
   export const AuthContext = createContext(null);
@@ -98,9 +99,9 @@ import React, { useState, useEffect, createContext } from 'react';
             component="main"
             sx={{
               flexGrow: 1,
-              p: 3,
+              p: { xs: 2, sm: 3 },
               mt: authState.isAuthenticated ? 8 : 0,
-              ml: authState.isAuthenticated ? { sm: 30 } : 0,
+              ml: authState.isAuthenticated ? { xs: 0, sm: 30 } : 0,
               width: authState.isAuthenticated ? 'auto' : '100%'
             }}
           >
@@ -133,6 +134,9 @@ import React, { useState, useEffect, createContext } from 'react';
               } />
               <Route path="/settings" element={
                 authState.isAuthenticated ? <Settings /> : <Navigate to="/login" />
+              } />
+              <Route path="/profile" element={
+                authState.isAuthenticated ? <UserProfile /> : <Navigate to="/login" />
               } />
 
               {/* Admin Protected Routes */}

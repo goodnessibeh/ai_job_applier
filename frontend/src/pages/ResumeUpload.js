@@ -101,7 +101,7 @@ const ResumeUpload = () => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3, mb: 3 }}>
+          <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
             <Typography variant="h5" gutterBottom>
               Upload Your Resume
             </Typography>
@@ -206,12 +206,19 @@ const ResumeUpload = () => {
         
         <Grid item xs={12} md={6}>
           {resumeData && (
-            <Paper sx={{ p: 2, mb: 3 }}>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
               <Tabs 
                 value={activeTab} 
                 onChange={handleTabChange} 
                 aria-label="resume tabs"
                 variant="fullWidth"
+                sx={{ 
+                  '.MuiTab-root': { 
+                    minWidth: 0, 
+                    py: { xs: 1, sm: 1.5 },
+                    px: { xs: 1, sm: 2 }
+                  }
+                }}
               >
                 <Tab 
                   icon={<VisibilityIcon />} 
