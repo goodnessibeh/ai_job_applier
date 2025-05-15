@@ -1,9 +1,4 @@
-import requests
-from bs4 import BeautifulSoup
 import time
-import random
-import json
-import os
 import logging
 from flask_login import current_user
 from app.config import Config
@@ -16,7 +11,6 @@ from app.modules.job_search.api_implementations import (
     _search_glassdoor_jobs_api, _search_startup_jobs_api, _search_job_search_api,
     _fetch_hiring_manager_info
 )
-from app.modules.job_search.web_scraper import get_scraper
 
 # Setup logging
 logger = logging.getLogger(__name__)

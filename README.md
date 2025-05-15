@@ -21,9 +21,8 @@ Heroku deployment is automated via Git hooks with Python buildpack. Use `./push-
 - **Frontend**: React, Material-UI
 - **Backend**: Flask (Python)
 - **AI Integration**: OpenAI API, Anthropic Claude API
-- **Job APIs**: 20+ job search APIs via RapidAPI
+- **Job Search**: 20+ job search APIs via RapidAPI
 - **Database**: SQLite (with migrations)
-- **Automation**: Selenium
 - **File Parsing**: PyPDF2, python-docx
 
 ## Getting Started
@@ -117,22 +116,28 @@ Heroku deployment is automated via Git hooks with Python buildpack. Use `./push-
 
 ## Job Search APIs
 
-The application integrates with multiple job search APIs through RapidAPI:
+The application exclusively uses RapidAPI for job searching, providing access to multiple high-quality job sources:
 
-- Indeed (multiple endpoints)
-- Google Jobs (multiple endpoints)
-- LinkedIn (multiple endpoints)
-- Upwork
-- Workday Jobs
-- Glassdoor Jobs
-- Startup Jobs
+- Indeed API (multiple endpoints)
+- Google Jobs API (multiple endpoints)
+- LinkedIn API (multiple endpoints)
+- Upwork API
+- Workday Jobs API
+- Glassdoor Jobs API
+- Startup Jobs API
 - Job Search API
 - Active Jobs API
 - Jobs API
 - Internships API
 - Hiring Manager API (provides hiring manager contact information)
 
-All API keys are managed through the admin settings panel. No API keys are hardcoded in the application code.
+All API keys are managed through the admin settings panel. To use the job search functionality, you'll need to:
+
+1. Sign up for a [RapidAPI](https://rapidapi.com/) account
+2. Subscribe to the job search APIs you want to use
+3. Add your RapidAPI key in the admin settings panel
+
+No API keys are hardcoded in the application code.
 
 ## License
 
