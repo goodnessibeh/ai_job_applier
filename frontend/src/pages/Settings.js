@@ -32,58 +32,33 @@ import { isAdmin } from '../services/authService';
 const Settings = () => {
   const navigate = useNavigate();
   const [settings, setSettings] = useState({
-    openai: {
-      api_key: '',
-      enabled: false
-    },
-    anthropic: {
-      api_key: '',
-      enabled: true  // Default to enabled
-    },
-    linkedin: {
-      client_id: '',
-      client_secret: '',
-      redirect_uri: 'http://localhost:3000/auth/linkedin/callback',
-      enabled: false
-    },
-    indeed: {
-      publisher_id: '',
-      api_key: '',
-      enabled: false
-    },
-    glassdoor: {
-      partner_id: '',
-      api_key: '',
-      enabled: false
-    },
-    smtp: {
-      server: '',
-      port: 587,
+    user: {
       username: '',
-      password: '',
-      from_email: '',
-      enabled: false
+      email: '',
+      display_name: '',
+      current_password: '',
+      new_password: '',
+      confirm_password: ''
     },
     application: {
       max_applications_per_day: 10,
+    },
+    system: {
+      ai_enabled: true,
+      job_portals_enabled: true
     }
   });
   
   const [showPasswords, setShowPasswords] = useState({
-    openai_key: false,
-    anthropic_key: false,
-    linkedin_secret: false,
-    indeed_key: false,
-    glassdoor_key: false,
-    smtp_password: false
+    current_password: false,
+    new_password: false,
+    confirm_password: false
   });
   
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [isLoading, setIsLoading] = useState(false);
-  const [testEmailStatus, setTestEmailStatus] = useState({ loading: false, success: false, error: null });
-  
   // Load saved settings from API
   useEffect(() => {
     const fetchSettings = async () => {
@@ -125,7 +100,50 @@ const Settings = () => {
   const handleSaveSettings = async () => {
     setIsLoading(true);
     try {
-      const response = await api.post('/api/settings/save', settings);
+      // Validate password if user is changing it
+      if (settings.user.new_password || settings.user.current_password) {
+        if (!settings.user.current_password) {
+          throw new Error('Current password is required');
+        }
+        
+        if (settings.user.new_password !== settings.user.confirm_password) {
+          throw new Error('New passwords do not match');
+        }
+        
+        if (settings.user.new_password && settings.user.new_password.length < 8) {
+          throw new Error('Password must be at least 8 characters long');
+        }
+      }
+      
+      // Prepare data to save - only include what's needed
+      const dataToSave = {
+        user: {
+          display_name: settings.user.display_name
+        },
+        application: {
+          max_applications_per_day: settings.application.max_applications_per_day
+        }
+      };
+      
+      // Add password change if needed
+      if (settings.user.new_password && settings.user.current_password) {
+        dataToSave.user.current_password = settings.user.current_password;
+        dataToSave.user.new_password = settings.user.new_password;
+      }
+      
+      const response = await api.post('/api/settings/save', dataToSave);
+      
+      // Clear password fields after successful save
+      setSettings(prev => ({
+        ...prev,
+        user: {
+          ...prev.user,
+          current_password: '',
+          new_password: '',
+          confirm_password: ''
+        }
+      }));
+      
       setSnackbarMessage('Settings saved successfully!');
       setSnackbarSeverity('success');
     } catch (error) {
@@ -138,26 +156,7 @@ const Settings = () => {
     }
   };
   
-  const handleTestEmailSettings = async () => {
-    setTestEmailStatus({ loading: true, success: false, error: null });
-    try {
-      const response = await api.post('/api/settings/test-smtp', settings.smtp);
-      setTestEmailStatus({ loading: false, success: true, error: null });
-      setSnackbarMessage('Test email sent successfully!');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error('Email test failed:', error);
-      setTestEmailStatus({ 
-        loading: false, 
-        success: false, 
-        error: error.response?.data?.error || error.message 
-      });
-      setSnackbarMessage('Test email failed: ' + (error.response?.data?.error || error.message));
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
-  };
+  // No longer needed - SMTP testing is for admins only
   
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
@@ -184,441 +183,132 @@ const Settings = () => {
             User Settings
           </Typography>
           <Typography variant="body1" paragraph>
-            Configure your settings to connect to job portals, enable AI features, and set up notifications.
+            Configure your user profile and application preferences.
           </Typography>
           
           <Alert severity="info" sx={{ mb: 3 }}>
-            <strong>Your settings are stored securely</strong> - Keep your API keys and credentials safe by not sharing them with others.
+            <strong>Your settings are stored securely</strong> - API keys and integration settings are managed by administrators.
           </Alert>
           
-          {/* Email Notification Settings */}
+          {/* User Profile Settings */}
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">Email Notification Settings</Typography>
+              <Typography variant="h6">User Profile</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography variant="body2" gutterBottom>
-                    Configure email notifications for job applications. When enabled, you'll receive an email notification whenever an application is submitted.
+                    Manage your profile information.
                   </Typography>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="SMTP Server"
-                    value={settings.smtp.server}
-                    onChange={(e) => handleChange('smtp', 'server', e.target.value)}
-                    helperText="e.g. smtp.gmail.com"
+                    label="Username"
+                    value={settings.user.username}
+                    disabled
+                    helperText="Your username cannot be changed"
                   />
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="SMTP Port"
-                    type="number"
-                    value={settings.smtp.port}
-                    onChange={(e) => handleChange('smtp', 'port', parseInt(e.target.value) || 587)}
-                    helperText="Common ports: 587 (TLS), 465 (SSL)"
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="SMTP Username"
-                    value={settings.smtp.username}
-                    onChange={(e) => handleChange('smtp', 'username', e.target.value)}
-                    helperText="Usually your email address"
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="SMTP Password"
-                    value={settings.smtp.password}
-                    onChange={(e) => handleChange('smtp', 'password', e.target.value)}
-                    type={showPasswords.smtp_password ? 'text' : 'password'}
-                    InputProps={{
-                      endAdornment: (
-                        <Button 
-                          onClick={() => togglePasswordVisibility('smtp_password')}
-                          sx={{ minWidth: 'auto' }}
-                        >
-                          {showPasswords.smtp_password ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                        </Button>
-                      ),
-                    }}
-                    helperText="For Gmail, you may need to use an app password"
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={8}>
-                  <TextField
-                    fullWidth
-                    label="From Email Address"
-                    value={settings.smtp.from_email}
-                    onChange={(e) => handleChange('smtp', 'from_email', e.target.value)}
-                    helperText="The email address that will appear as the sender"
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={4}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={settings.smtp.enabled}
-                        onChange={(e) => handleChange('smtp', 'enabled', e.target.checked)}
-                      />
-                    }
-                    label="Enable Email Notifications"
+                    label="Email"
+                    value={settings.user.email}
+                    disabled
+                    helperText="Contact an administrator to change your email"
                   />
                 </Grid>
                 
                 <Grid item xs={12}>
-                  <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<SendIcon />}
-                      onClick={handleTestEmailSettings}
-                      disabled={
-                        testEmailStatus.loading || 
-                        !settings.smtp.server || 
-                        !settings.smtp.username || 
-                        !settings.smtp.password || 
-                        !settings.smtp.from_email
-                      }
-                      sx={{ mr: 2 }}
-                    >
-                      {testEmailStatus.loading ? <CircularProgress size={24} /> : 'Test Email Settings'}
-                    </Button>
-                  </Box>
-                  
-                  {testEmailStatus.error && (
-                    <Alert severity="error" sx={{ mt: 2 }}>
-                      {testEmailStatus.error}
-                    </Alert>
-                  )}
-                  
-                  {testEmailStatus.success && (
-                    <Alert severity="success" sx={{ mt: 2 }}>
-                      Test email sent successfully!
-                    </Alert>
-                  )}
-                </Grid>
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-          
-          {/* Anthropic API Settings */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">Anthropic Claude API Settings</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="body2" gutterBottom>
-                    The Anthropic Claude API is used to generate high-quality, detailed cover letters that better match your experience to job requirements.
-                    <Link 
-                      href="https://console.anthropic.com/settings/keys" 
-                      target="_blank" 
-                      sx={{ ml: 1 }}
-                    >
-                      Get your Anthropic API key here
-                    </Link>
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} md={8}>
                   <TextField
                     fullWidth
-                    label="Anthropic API Key"
-                    value={settings.anthropic.api_key}
-                    onChange={(e) => handleChange('anthropic', 'api_key', e.target.value)}
-                    type={showPasswords.anthropic_key ? 'text' : 'password'}
-                    InputProps={{
-                      endAdornment: (
-                        <Button 
-                          onClick={() => togglePasswordVisibility('anthropic_key')}
-                          sx={{ minWidth: 'auto' }}
-                        >
-                          {showPasswords.anthropic_key ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                        </Button>
-                      ),
-                    }}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={4}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={settings.anthropic.enabled}
-                        onChange={(e) => handleChange('anthropic', 'enabled', e.target.checked)}
-                      />
-                    }
-                    label="Use Anthropic for Cover Letters"
+                    label="Display Name"
+                    value={settings.user.display_name}
+                    onChange={(e) => handleChange('user', 'display_name', e.target.value)}
+                    helperText="This name will be displayed throughout the application"
                   />
                 </Grid>
               </Grid>
             </AccordionDetails>
           </Accordion>
           
-          {/* OpenAI API Settings */}
+          {/* Password Settings */}
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">OpenAI API Settings</Typography>
+              <Typography variant="h6">Change Password</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <Typography variant="body2" gutterBottom>
-                    The OpenAI API is used as a fallback for generating cover letters if Anthropic is not configured.
-                    <Link 
-                      href="https://platform.openai.com/api-keys" 
-                      target="_blank" 
-                      sx={{ ml: 1 }}
-                    >
-                      Get your API key here
-                    </Link>
+                    Update your account password. For security, you'll need to provide your current password.
                   </Typography>
                 </Grid>
                 
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="OpenAI API Key"
-                    value={settings.openai.api_key}
-                    onChange={(e) => handleChange('openai', 'api_key', e.target.value)}
-                    type={showPasswords.openai_key ? 'text' : 'password'}
+                    label="Current Password"
+                    value={settings.user.current_password || ''}
+                    onChange={(e) => handleChange('user', 'current_password', e.target.value)}
+                    type={showPasswords.current_password ? 'text' : 'password'}
                     InputProps={{
                       endAdornment: (
                         <Button 
-                          onClick={() => togglePasswordVisibility('openai_key')}
+                          onClick={() => togglePasswordVisibility('current_password')}
                           sx={{ minWidth: 'auto' }}
                         >
-                          {showPasswords.openai_key ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                          {showPasswords.current_password ? <VisibilityOffIcon /> : <VisibilityIcon />}
                         </Button>
                       ),
                     }}
                   />
                 </Grid>
                 
-                <Grid item xs={12} md={4}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={settings.openai.enabled}
-                        onChange={(e) => handleChange('openai', 'enabled', e.target.checked)}
-                      />
-                    }
-                    label="Enable OpenAI Features"
-                  />
-                </Grid>
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-          
-          {/* LinkedIn API Settings */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">LinkedIn API Settings</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="body2" gutterBottom>
-                    LinkedIn API credentials are used to search for jobs on LinkedIn.
-                    <Link 
-                      href="https://www.linkedin.com/developers/apps" 
-                      target="_blank"
-                      sx={{ ml: 1 }}
-                    >
-                      Create a LinkedIn Developer App
-                    </Link>
-                  </Typography>
-                </Grid>
-                
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Client ID"
-                    value={settings.linkedin.client_id}
-                    onChange={(e) => handleChange('linkedin', 'client_id', e.target.value)}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Client Secret"
-                    value={settings.linkedin.client_secret}
-                    onChange={(e) => handleChange('linkedin', 'client_secret', e.target.value)}
-                    type={showPasswords.linkedin_secret ? 'text' : 'password'}
+                    label="New Password"
+                    value={settings.user.new_password || ''}
+                    onChange={(e) => handleChange('user', 'new_password', e.target.value)}
+                    type={showPasswords.new_password ? 'text' : 'password'}
                     InputProps={{
                       endAdornment: (
                         <Button 
-                          onClick={() => togglePasswordVisibility('linkedin_secret')}
+                          onClick={() => togglePasswordVisibility('new_password')}
                           sx={{ minWidth: 'auto' }}
                         >
-                          {showPasswords.linkedin_secret ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                          {showPasswords.new_password ? <VisibilityOffIcon /> : <VisibilityIcon />}
                         </Button>
                       ),
                     }}
-                  />
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Redirect URI"
-                    value={settings.linkedin.redirect_uri}
-                    onChange={(e) => handleChange('linkedin', 'redirect_uri', e.target.value)}
-                    helperText="This must match the redirect URI in your LinkedIn app settings"
-                  />
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={settings.linkedin.enabled}
-                        onChange={(e) => handleChange('linkedin', 'enabled', e.target.checked)}
-                      />
-                    }
-                    label="Enable LinkedIn Integration"
-                  />
-                </Grid>
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-          
-          {/* Indeed API Settings */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">Indeed API Settings</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="body2" gutterBottom>
-                    Indeed API credentials are used to search for jobs on Indeed.
-                    <Link 
-                      href="https://developer.indeed.com/" 
-                      target="_blank"
-                      sx={{ ml: 1 }}
-                    >
-                      Get Indeed API credentials
-                    </Link>
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Publisher ID"
-                    value={settings.indeed.publisher_id}
-                    onChange={(e) => handleChange('indeed', 'publisher_id', e.target.value)}
+                    helperText="Use a strong password with at least 8 characters"
                   />
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="API Key"
-                    value={settings.indeed.api_key}
-                    onChange={(e) => handleChange('indeed', 'api_key', e.target.value)}
-                    type={showPasswords.indeed_key ? 'text' : 'password'}
+                    label="Confirm New Password"
+                    value={settings.user.confirm_password || ''}
+                    onChange={(e) => handleChange('user', 'confirm_password', e.target.value)}
+                    type={showPasswords.confirm_password ? 'text' : 'password'}
                     InputProps={{
                       endAdornment: (
                         <Button 
-                          onClick={() => togglePasswordVisibility('indeed_key')}
+                          onClick={() => togglePasswordVisibility('confirm_password')}
                           sx={{ minWidth: 'auto' }}
                         >
-                          {showPasswords.indeed_key ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                          {showPasswords.confirm_password ? <VisibilityOffIcon /> : <VisibilityIcon />}
                         </Button>
                       ),
                     }}
-                  />
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={settings.indeed.enabled}
-                        onChange={(e) => handleChange('indeed', 'enabled', e.target.checked)}
-                      />
-                    }
-                    label="Enable Indeed Integration"
-                  />
-                </Grid>
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-          
-          {/* Glassdoor API Settings */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="h6">Glassdoor API Settings</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="body2" gutterBottom>
-                    Glassdoor API credentials are used to search for jobs on Glassdoor.
-                    <Link 
-                      href="https://www.glassdoor.com/developer/register_input.htm" 
-                      target="_blank"
-                      sx={{ ml: 1 }}
-                    >
-                      Register for Glassdoor API
-                    </Link>
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Partner ID"
-                    value={settings.glassdoor.partner_id}
-                    onChange={(e) => handleChange('glassdoor', 'partner_id', e.target.value)}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="API Key"
-                    value={settings.glassdoor.api_key}
-                    onChange={(e) => handleChange('glassdoor', 'api_key', e.target.value)}
-                    type={showPasswords.glassdoor_key ? 'text' : 'password'}
-                    InputProps={{
-                      endAdornment: (
-                        <Button 
-                          onClick={() => togglePasswordVisibility('glassdoor_key')}
-                          sx={{ minWidth: 'auto' }}
-                        >
-                          {showPasswords.glassdoor_key ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                        </Button>
-                      ),
-                    }}
-                  />
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={settings.glassdoor.enabled}
-                        onChange={(e) => handleChange('glassdoor', 'enabled', e.target.checked)}
-                      />
-                    }
-                    label="Enable Glassdoor Integration"
+                    error={settings.user.new_password !== settings.user.confirm_password && settings.user.confirm_password !== ''}
+                    helperText={settings.user.new_password !== settings.user.confirm_password && settings.user.confirm_password !== '' ? 'Passwords do not match' : ''}
                   />
                 </Grid>
               </Grid>
@@ -648,6 +338,25 @@ const Settings = () => {
                     InputProps={{ inputProps: { min: 1, max: 100 } }}
                     helperText="Limit the number of applications the system can submit in a day"
                   />
+                </Grid>
+                
+                <Grid item xs={12}>
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    <strong>System Status:</strong>
+                    <Box sx={{ mt: 1 }}>
+                      AI Services: {settings.system.ai_enabled ? 
+                        <span style={{ color: 'green' }}>Enabled</span> : 
+                        <span style={{ color: 'red' }}>Disabled</span>}
+                    </Box>
+                    <Box>
+                      Job Portal Integrations: {settings.system.job_portals_enabled ? 
+                        <span style={{ color: 'green' }}>Enabled</span> : 
+                        <span style={{ color: 'red' }}>Disabled</span>}
+                    </Box>
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      Contact an administrator if you need system settings changed.
+                    </Typography>
+                  </Alert>
                 </Grid>
               </Grid>
             </AccordionDetails>

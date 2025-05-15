@@ -14,12 +14,25 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  CircularProgress
+  CircularProgress,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Snackbar,
+  Alert,
+  IconButton
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import LockIcon from '@mui/icons-material/Lock';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import api from '../services/api';
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -29,6 +42,25 @@ const AdminDashboard = () => {
     activeUsers: 0
   });
   const [recentUsers, setRecentUsers] = useState([]);
+  
+  // Password change dialog state
+  const [passwordDialog, setPasswordDialog] = useState({
+    open: false,
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    showCurrentPassword: false,
+    showNewPassword: false,
+    showConfirmPassword: false,
+    loading: false
+  });
+  
+  // Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
   
   useEffect(() => {
     // In a real implementation, these would be API calls
@@ -55,6 +87,102 @@ const AdminDashboard = () => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString();
+  };
+  
+  // Password dialog handlers
+  const handleOpenPasswordDialog = () => {
+    setPasswordDialog({
+      ...passwordDialog,
+      open: true,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      showCurrentPassword: false,
+      showNewPassword: false,
+      showConfirmPassword: false,
+      loading: false
+    });
+  };
+  
+  const handleClosePasswordDialog = () => {
+    setPasswordDialog({
+      ...passwordDialog,
+      open: false
+    });
+  };
+  
+  const handlePasswordChange = (field, value) => {
+    setPasswordDialog({
+      ...passwordDialog,
+      [field]: value
+    });
+  };
+  
+  const togglePasswordVisibility = (field) => {
+    setPasswordDialog({
+      ...passwordDialog,
+      [field]: !passwordDialog[field]
+    });
+  };
+  
+  const handleChangePassword = async () => {
+    // Validate password
+    if (passwordDialog.newPassword !== passwordDialog.confirmPassword) {
+      setSnackbar({
+        open: true,
+        message: 'Passwords do not match',
+        severity: 'error'
+      });
+      return;
+    }
+    
+    if (passwordDialog.newPassword.length < 8) {
+      setSnackbar({
+        open: true,
+        message: 'Password must be at least 8 characters long',
+        severity: 'error'
+      });
+      return;
+    }
+    
+    setPasswordDialog({
+      ...passwordDialog,
+      loading: true
+    });
+    
+    try {
+      const response = await api.post('/api/settings/admin/change-password', {
+        current_password: passwordDialog.currentPassword,
+        new_password: passwordDialog.newPassword
+      });
+      
+      setSnackbar({
+        open: true,
+        message: 'Password changed successfully',
+        severity: 'success'
+      });
+      
+      handleClosePasswordDialog();
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: 'Error changing password: ' + (error.response?.data?.error || error.message),
+        severity: 'error'
+      });
+    } finally {
+      setPasswordDialog({
+        ...passwordDialog,
+        loading: false
+      });
+    }
+  };
+  
+  // Snackbar handlers
+  const handleCloseSnackbar = () => {
+    setSnackbar({
+      ...snackbar,
+      open: false
+    });
   };
   
   if (loading) {
@@ -170,11 +298,133 @@ const AdminDashboard = () => {
                 <Button variant="contained">Application Reports</Button>
                 <Button variant="contained">System Settings</Button>
                 <Button variant="contained" color="secondary">Maintenance Mode</Button>
+                <Button 
+                  variant="contained" 
+                  color="primary" 
+                  startIcon={<LockIcon />}
+                  onClick={handleOpenPasswordDialog}
+                >
+                  Change Admin Password
+                </Button>
               </Box>
             </Paper>
           </Grid>
         </Grid>
       </Box>
+      
+      {/* Password Change Dialog */}
+      <Dialog 
+        open={passwordDialog.open} 
+        onClose={handleClosePasswordDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Change Admin Password</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Enter your current password and a new password to change your admin credentials.
+          </DialogContentText>
+          
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Current Password"
+              type={passwordDialog.showCurrentPassword ? "text" : "password"}
+              value={passwordDialog.currentPassword}
+              onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <IconButton 
+                    onClick={() => togglePasswordVisibility('showCurrentPassword')}
+                    edge="end"
+                  >
+                    {passwordDialog.showCurrentPassword ? 
+                      <VisibilityOffIcon /> : <VisibilityIcon />}
+                  </IconButton>
+                )
+              }}
+            />
+            
+            <TextField
+              fullWidth
+              margin="dense"
+              label="New Password"
+              type={passwordDialog.showNewPassword ? "text" : "password"}
+              value={passwordDialog.newPassword}
+              onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <IconButton 
+                    onClick={() => togglePasswordVisibility('showNewPassword')}
+                    edge="end"
+                  >
+                    {passwordDialog.showNewPassword ? 
+                      <VisibilityOffIcon /> : <VisibilityIcon />}
+                  </IconButton>
+                )
+              }}
+              helperText="Must be at least 8 characters long"
+            />
+            
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Confirm New Password"
+              type={passwordDialog.showConfirmPassword ? "text" : "password"}
+              value={passwordDialog.confirmPassword}
+              onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <IconButton 
+                    onClick={() => togglePasswordVisibility('showConfirmPassword')}
+                    edge="end"
+                  >
+                    {passwordDialog.showConfirmPassword ? 
+                      <VisibilityOffIcon /> : <VisibilityIcon />}
+                  </IconButton>
+                )
+              }}
+              error={passwordDialog.newPassword !== passwordDialog.confirmPassword && 
+                     passwordDialog.confirmPassword.length > 0}
+              helperText={passwordDialog.newPassword !== passwordDialog.confirmPassword && 
+                       passwordDialog.confirmPassword.length > 0 ? 
+                       "Passwords don't match" : ""}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePasswordDialog}>Cancel</Button>
+          <Button 
+            onClick={handleChangePassword} 
+            variant="contained" 
+            color="primary"
+            disabled={passwordDialog.loading || 
+                     !passwordDialog.currentPassword ||
+                     !passwordDialog.newPassword ||
+                     !passwordDialog.confirmPassword ||
+                     passwordDialog.newPassword !== passwordDialog.confirmPassword}
+          >
+            {passwordDialog.loading ? <CircularProgress size={24} /> : "Change Password"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Snackbar for notifications */}
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
