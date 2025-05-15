@@ -55,7 +55,8 @@ class User(db.Model, UserMixin):
     def get_profile_picture_url(self):
         """Get the profile picture URL or return a default if none is set"""
         if self.profile_picture:
-            return f"/api/user/profile-picture/{self.id}"
+            # Add a timestamp query parameter to prevent browser caching
+            return f"/api/user/profile-picture/{self.id}?t={int(datetime.datetime.now().timestamp())}"
         return "/static/default-profile.png"
     
     def get_job_titles_list(self):

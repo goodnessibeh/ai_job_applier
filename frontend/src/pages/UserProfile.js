@@ -181,11 +181,13 @@ const UserProfile = () => {
   };
   
   const handleProfilePictureUpdate = (newUrl) => {
+    console.log("Profile picture updated:", newUrl);
+    
     // Update the profile with new picture URL
-    setProfile({
-      ...profile,
+    setProfile(prevProfile => ({
+      ...prevProfile,
       profile_picture_url: newUrl
-    });
+    }));
     
     // Also update user in local storage
     const currentUser = getCurrentUser();
@@ -194,8 +196,19 @@ const UserProfile = () => {
         ...currentUser,
         profile_picture_url: newUrl
       };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      try {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log("Local storage updated with new profile picture URL");
+      } catch (error) {
+        console.error("Error updating local storage:", error);
+      }
     }
+    
+    // Force a re-render by updating state with current time
+    setFormData(prevData => ({
+      ...prevData,
+      _lastUpdate: new Date().getTime()
+    }));
   };
   
   const handleCloseSnackbar = () => {

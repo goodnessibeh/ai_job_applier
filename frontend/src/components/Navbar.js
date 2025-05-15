@@ -17,14 +17,53 @@ const Navbar = () => {
   const [profilePicUrl, setProfilePicUrl] = useState('');
   
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    setUser(currentUser);
-    setUserIsAdmin(isAdmin());
+    // This effect needs to run whenever localStorage changes
+    const handleStorageChange = () => {
+      const currentUser = getCurrentUser();
+      setUser(currentUser);
+      setUserIsAdmin(isAdmin());
+      
+      // Update profile picture URL if available
+      if (currentUser && currentUser.profile_picture_url) {
+        // Add timestamp to force refresh
+        const timestamp = new Date().getTime();
+        const newUrl = currentUser.profile_picture_url.includes('?') 
+          ? `${currentUser.profile_picture_url}&t=${timestamp}` 
+          : `${currentUser.profile_picture_url}?t=${timestamp}`;
+        setProfilePicUrl(newUrl);
+      }
+    };
     
-    // Set initial profile picture URL if available
-    if (currentUser && currentUser.profile_picture_url) {
-      setProfilePicUrl(currentUser.profile_picture_url);
-    }
+    // Handler for custom profile picture update event
+    const handleProfilePictureUpdate = (event) => {
+      console.log('Profile picture updated event received:', event.detail);
+      setProfilePicUrl(event.detail.url);
+      
+      // Also update the user in localStorage to ensure persistence
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        currentUser.profile_picture_url = event.detail.url.split('?')[0]; // Store without timestamp
+        localStorage.setItem('user', JSON.stringify(currentUser));
+      }
+    };
+    
+    // Initial load
+    handleStorageChange();
+    
+    // Listen for storage events
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Listen for profile picture update events
+    window.addEventListener('profile-picture-updated', handleProfilePictureUpdate);
+    
+    // Set up periodic check every 5 seconds to ensure picture stays updated
+    const interval = setInterval(handleStorageChange, 5000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profile-picture-updated', handleProfilePictureUpdate);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleMenu = (event) => {

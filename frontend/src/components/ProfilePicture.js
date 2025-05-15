@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Avatar, IconButton, Badge, CircularProgress, Tooltip, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
@@ -47,6 +47,13 @@ const ProfilePicture = ({
   const [error, setError] = useState(null);
   const [imageUrl, setImageUrl] = useState(pictureUrl);
   const fileInputRef = useRef(null);
+  
+  // Update imageUrl when pictureUrl prop changes
+  useEffect(() => {
+    if (pictureUrl) {
+      setImageUrl(pictureUrl);
+    }
+  }, [pictureUrl]);
 
   // Handle clicking the upload icon
   const handleUploadClick = () => {
@@ -90,6 +97,12 @@ const ProfilePicture = ({
         // Add a timestamp to force browser to reload the image
         const updatedUrl = response.data.profile_picture_url + '?t=' + new Date().getTime();
         setImageUrl(updatedUrl);
+        
+        // Dispatch a custom event that other components can listen for
+        window.dispatchEvent(new CustomEvent('profile-picture-updated', { 
+          detail: { url: updatedUrl }
+        }));
+        
         if (onUpdate) {
           onUpdate(updatedUrl);
         }
@@ -153,8 +166,11 @@ const ProfilePicture = ({
 
     // Add src only if we have a real image URL
     if (imageUrl && !imageUrl.includes('default-profile.png')) {
-      props.src = imageUrl;
+      // Force image refresh by using key and setting src with timestamp
+      props.src = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}refresh=${new Date().getTime()}`;
       props.alt = username || 'User avatar';
+      // Add cache-busting key to force re-render when URL changes
+      props.key = `profile-image-${new Date().getTime()}`;
     }
 
     return props;

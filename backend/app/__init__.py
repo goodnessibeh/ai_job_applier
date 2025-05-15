@@ -102,4 +102,10 @@ def create_app(test_config=None):
     from app.api import settings_routes
     app.register_blueprint(settings_routes.bp)
     
+    from app.api import user_routes
+    app.register_blueprint(user_routes.bp)
+    
+    # Ensure upload directories exist
+    os.makedirs(os.path.join(app.root_path, 'static', 'uploads', 'profile_pictures'), exist_ok=True)
+    
     return app

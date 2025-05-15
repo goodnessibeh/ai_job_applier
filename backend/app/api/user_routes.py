@@ -137,20 +137,41 @@ def upload_profile_picture():
         uploads_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'profile_pictures')
         os.makedirs(uploads_dir, exist_ok=True)
         
-        # Save the file
-        file_path = os.path.join(uploads_dir, filename)
-        file.save(file_path)
-        
-        # Update the user's profile picture information
-        relative_path = os.path.join('static', 'uploads', 'profile_pictures', filename)
-        current_user.set_profile_picture(relative_path, file.content_type)
-        
-        db.session.commit()
-        
-        return jsonify({
-            'message': 'Profile picture uploaded successfully',
-            'profile_picture_url': current_user.get_profile_picture_url()
-        })
+        try:
+            # Save the file
+            file_path = os.path.join(uploads_dir, filename)
+            file.save(file_path)
+            
+            # Set file permissions
+            os.chmod(file_path, 0o644)
+            
+            # Delete old profile picture if it exists
+            if current_user.profile_picture:
+                old_file_path = os.path.join(current_app.root_path, current_user.profile_picture)
+                if os.path.exists(old_file_path):
+                    try:
+                        os.remove(old_file_path)
+                    except Exception as e:
+                        current_app.logger.error(f"Error removing old profile picture: {str(e)}")
+            
+            # Update the user's profile picture information
+            relative_path = os.path.join('static', 'uploads', 'profile_pictures', filename)
+            current_user.set_profile_picture(relative_path, file.content_type)
+            
+            db.session.commit()
+            
+            # Get the updated URL with timestamp to force refresh
+            updated_url = current_user.get_profile_picture_url()
+            
+            return jsonify({
+                'message': 'Profile picture uploaded successfully',
+                'profile_picture_url': updated_url
+            })
+            
+        except Exception as e:
+            current_app.logger.error(f"Error saving profile picture: {str(e)}")
+            db.session.rollback()
+            return jsonify({'error': f'Error saving profile picture: {str(e)}'}), 500
     
     return jsonify({'error': 'File type not allowed'}), 400
 
@@ -161,10 +182,29 @@ def get_profile_picture(user_id):
     
     if not user or not user.profile_picture:
         # Return default profile picture
-        return send_file(os.path.join(current_app.root_path, 'static', 'default-profile.png'), mimetype='image/png')
+        response = send_file(os.path.join(current_app.root_path, 'static', 'default-profile.png'), mimetype='image/png')
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
     
-    # Return the user's profile picture
-    return send_file(os.path.join(current_app.root_path, user.profile_picture), mimetype=user.profile_picture_type)
+    # Check if the file actually exists
+    file_path = os.path.join(current_app.root_path, user.profile_picture)
+    if not os.path.exists(file_path):
+        current_app.logger.warning(f"Profile picture file not found: {file_path}")
+        # Fall back to default if the file doesn't exist
+        response = send_file(os.path.join(current_app.root_path, 'static', 'default-profile.png'), mimetype='image/png')
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+    
+    # Return the user's profile picture with cache control headers
+    response = send_file(file_path, mimetype=user.profile_picture_type)
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @bp.route('/profile-picture', methods=['DELETE'])
 @login_required
