@@ -9,6 +9,8 @@ An AI-powered job application system that automates resume parsing, job searchin
 - **Application Customization**: Generate tailored cover letters and application responses using AI
 - **Application Automation**: Submit applications automatically to job portals when possible
 - **Application Tracking**: Keep track of all your job applications in one place
+- **Email Notifications**: Receive beautifully designed HTML email notifications when applications are submitted
+- **Admin Dashboard**: Admin-only access to configure system settings, view user statistics, and manage application data
 
 ## Tech Stack
 
@@ -80,11 +82,23 @@ An AI-powered job application system that automates resume parsing, job searchin
 
 ## Usage Guide
 
+### Regular Users
+
 1. **Upload Resume**: Start by uploading your resume on the Resume Upload page
 2. **Search for Jobs**: Use the search filters to find jobs that match your skills and preferences
 3. **View Job Details**: Examine job details to determine if it's a good fit
 4. **Apply to Jobs**: Use the AI-assisted application process to generate and submit applications
 5. **Track Applications**: View your application history to keep track of submitted applications
+6. **Email Notifications**: Receive email updates when your applications are submitted (if enabled)
+7. **User Settings**: Configure your application preferences and daily application limits
+
+### Admin Users
+
+1. **Admin Dashboard**: Access the admin dashboard to view system statistics and user activity
+2. **System Configuration**: Configure global settings like API keys, SMTP server, and application limits
+3. **Email Setup**: Set up the SMTP server for email notifications and test the connection
+4. **User Management**: View and manage user accounts and their application histories
+5. **Application Reports**: Generate reports on application trends and success rates
 
 ## Limitations
 

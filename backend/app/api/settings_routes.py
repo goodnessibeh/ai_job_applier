@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
 import os
 import json
+from datetime import datetime
 from dotenv import set_key
 from app.config import Config
 from ..models import db, UserSettings
@@ -105,8 +106,7 @@ def test_smtp():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     
-    import smtplib
-    from email.mime.text import MIMEText
+    from app.modules.notifications.email_service import EmailService
     
     smtp_server = data.get('server')
     smtp_port = data.get('port')
@@ -114,27 +114,61 @@ def test_smtp():
     password = data.get('password')
     from_email = data.get('from_email')
     test_recipient = data.get('test_recipient', current_user.email)
+    send_test_email = data.get('send_test_email', True)
     
-    if not all([smtp_server, smtp_port, username, password, from_email, test_recipient]):
+    if not all([smtp_server, smtp_port, username, password, from_email]):
         return jsonify({'error': 'Missing required SMTP parameters'}), 400
     
-    try:
-        # Create message
-        msg = MIMEText("This is a test email from AI Job Applier to verify your SMTP settings.")
-        msg['Subject'] = "AI Job Applier - SMTP Test"
-        msg['From'] = from_email
-        msg['To'] = test_recipient
-        
-        # Connect to server and send
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
-        server.login(username, password)
-        server.send_message(msg)
-        server.quit()
-        
-        return jsonify({'success': True, 'message': f'Test email sent to {test_recipient}'})
-    except Exception as e:
-        return jsonify({'error': f'SMTP test failed: {str(e)}'}), 500
+    # Create email service with provided settings
+    email_service = EmailService(
+        smtp_server=smtp_server,
+        smtp_port=int(smtp_port),
+        username=username,
+        password=password,
+        from_email=from_email
+    )
+    
+    # Test the connection
+    success, message = email_service.test_connection()
+    
+    if not success:
+        return jsonify({'success': False, 'message': message}), 400
+    
+    # If connection successful and user wants to send a test email
+    if send_test_email and test_recipient:
+        try:
+            # Send a test notification email
+            sample_application = {
+                'position': 'Sample Position',
+                'company': 'Test Company',
+                'location': 'Remote',
+                'platform': 'Email Test',
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'success': True,
+                'message': 'This is a test email to verify your SMTP settings for AI Job Applier.',
+                'job_url': '#'
+            }
+            
+            sent = email_service.send_application_notification(test_recipient, sample_application)
+            
+            if sent:
+                return jsonify({
+                    'success': True, 
+                    'message': f'SMTP connection successful and test email sent to {test_recipient}'
+                })
+            else:
+                return jsonify({
+                    'success': False, 
+                    'message': 'SMTP connection successful but failed to send test email'
+                }), 400
+        except Exception as e:
+            return jsonify({
+                'success': False, 
+                'message': f'SMTP connection successful but error sending test email: {str(e)}'
+            }), 400
+    
+    # If only testing connection without sending email
+    return jsonify({'success': True, 'message': message})
 
 
 @bp.route('/system', methods=['GET'])

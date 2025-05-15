@@ -23,7 +23,9 @@ import {
   DialogActions,
   Snackbar,
   Alert,
-  IconButton
+  IconButton,
+  Divider,
+  Chip
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
@@ -187,29 +189,110 @@ const AdminDashboard = () => {
   
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress />
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '80vh' 
+      }}>
+        <CircularProgress size={60} thickness={4} />
+        <Typography variant="h6" color="text.secondary" sx={{ mt: 2 }}>
+          Loading Admin Dashboard...
+        </Typography>
       </Box>
     );
   }
   
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-          <SupervisorAccountIcon sx={{ mr: 1 }} /> Admin Dashboard
+    <Container 
+      maxWidth="lg"
+      sx={{
+        pb: { xs: 8, sm: 4 } // Add bottom padding for mobile navigation
+      }}
+    >
+      <Box sx={{ my: { xs: 3, md: 4 } }}>
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          gutterBottom 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            fontSize: { xs: '1.75rem', sm: '2.125rem' },
+            fontWeight: 'bold',
+            color: 'primary.main',
+            pb: 1,
+            borderBottom: '2px solid',
+            borderColor: 'primary.main',
+            width: 'fit-content'
+          }}
+        >
+          <SupervisorAccountIcon sx={{ mr: 1.5, fontSize: { xs: '1.75rem', sm: '2.125rem' } }} /> 
+          Admin Dashboard
         </Typography>
         
-        <Grid container spacing={3} sx={{ mt: 2 }}>
+        <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mt: { xs: 2, md: 3 } }}>
           {/* Stats Cards */}
           <Grid item xs={12} sm={4}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                  <PersonIcon sx={{ mr: 1 }} /> Users
+            <Card 
+              sx={{ 
+                height: '100%', 
+                borderRadius: 2,
+                boxShadow: 3,
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: 5
+                }
+              }}
+            >
+              <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                <Typography 
+                  variant="h6" 
+                  gutterBottom 
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    color: 'primary.main',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      backgroundColor: 'primary.light', 
+                      borderRadius: '50%', 
+                      width: 40, 
+                      height: 40, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      mr: 1.5
+                    }}
+                  >
+                    <PersonIcon sx={{ color: 'primary.main' }} />
+                  </Box>
+                  Users
                 </Typography>
-                <Typography variant="h3">{stats.users}</Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography 
+                  variant="h3" 
+                  sx={{ 
+                    fontWeight: 'bold', 
+                    my: 2,
+                    fontSize: { xs: '2.5rem', sm: '3rem' }
+                  }}
+                >
+                  {stats.users}
+                </Typography>
+                <Typography 
+                  variant="body1" 
+                  color="text.secondary"
+                  sx={{
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    pt: 1
+                  }}
+                >
                   Total registered users
                 </Typography>
               </CardContent>
@@ -217,13 +300,64 @@ const AdminDashboard = () => {
           </Grid>
           
           <Grid item xs={12} sm={4}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                  <BusinessCenterIcon sx={{ mr: 1 }} /> Applications
+            <Card 
+              sx={{ 
+                height: '100%', 
+                borderRadius: 2,
+                boxShadow: 3,
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: 5
+                }
+              }}
+            >
+              <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                <Typography 
+                  variant="h6" 
+                  gutterBottom 
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    color: 'success.main',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      backgroundColor: 'success.light', 
+                      borderRadius: '50%', 
+                      width: 40, 
+                      height: 40, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      mr: 1.5
+                    }}
+                  >
+                    <BusinessCenterIcon sx={{ color: 'success.main' }} />
+                  </Box>
+                  Applications
                 </Typography>
-                <Typography variant="h3">{stats.applications}</Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography 
+                  variant="h3" 
+                  sx={{ 
+                    fontWeight: 'bold', 
+                    my: 2,
+                    fontSize: { xs: '2.5rem', sm: '3rem' }
+                  }}
+                >
+                  {stats.applications}
+                </Typography>
+                <Typography 
+                  variant="body1" 
+                  color="text.secondary"
+                  sx={{
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    pt: 1
+                  }}
+                >
                   Total job applications submitted
                 </Typography>
               </CardContent>
@@ -231,49 +365,274 @@ const AdminDashboard = () => {
           </Grid>
           
           <Grid item xs={12} sm={4}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                  <PersonIcon sx={{ mr: 1 }} /> Active Users
+            <Card 
+              sx={{ 
+                height: '100%', 
+                borderRadius: 2,
+                boxShadow: 3,
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-5px)',
+                  boxShadow: 5
+                }
+              }}
+            >
+              <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                <Typography 
+                  variant="h6" 
+                  gutterBottom 
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    color: 'info.main',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      backgroundColor: 'info.light', 
+                      borderRadius: '50%', 
+                      width: 40, 
+                      height: 40, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      mr: 1.5
+                    }}
+                  >
+                    <PersonIcon sx={{ color: 'info.main' }} />
+                  </Box>
+                  Active Users
                 </Typography>
-                <Typography variant="h3">{stats.activeUsers}</Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography 
+                  variant="h3" 
+                  sx={{ 
+                    fontWeight: 'bold', 
+                    my: 2,
+                    fontSize: { xs: '2.5rem', sm: '3rem' }
+                  }}
+                >
+                  {stats.activeUsers}
+                </Typography>
+                <Typography 
+                  variant="body1" 
+                  color="text.secondary"
+                  sx={{
+                    borderTop: '1px solid',
+                    borderColor: 'divider',
+                    pt: 1
+                  }}
+                >
                   Users active in the last 24 hours
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
           
+          {/* Admin Actions */}
+          <Grid item xs={12} md={4} sx={{ mt: { xs: 2, md: 0 } }}>
+            <Paper 
+              sx={{ 
+                p: { xs: 2, sm: 3 },
+                height: '100%',
+                borderRadius: 2,
+                boxShadow: 3
+              }}
+              elevation={3}
+            >
+              <Typography 
+                variant="h6" 
+                gutterBottom
+                color="primary"
+                fontWeight="bold"
+                sx={{
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <SettingsIcon sx={{ mr: 1 }} />
+                Admin Actions
+              </Typography>
+              
+              <Divider sx={{ mb: 3 }} />
+              
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  gap: 2
+                }}
+              >
+                <Button 
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  sx={{
+                    py: 1.5,
+                    fontWeight: 'medium',
+                    boxShadow: 2,
+                    '&:hover': {
+                      boxShadow: 4
+                    }
+                  }}
+                  startIcon={<PersonIcon />}
+                >
+                  View All Users
+                </Button>
+                
+                <Button 
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  sx={{
+                    py: 1.5,
+                    fontWeight: 'medium',
+                    boxShadow: 2,
+                    '&:hover': {
+                      boxShadow: 4
+                    }
+                  }}
+                  startIcon={<BusinessCenterIcon />}
+                >
+                  Application Reports
+                </Button>
+                
+                <Button 
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  sx={{
+                    py: 1.5,
+                    fontWeight: 'medium',
+                    boxShadow: 2,
+                    '&:hover': {
+                      boxShadow: 4
+                    }
+                  }}
+                  startIcon={<SettingsIcon />}
+                >
+                  System Settings
+                </Button>
+                
+                <Button 
+                  variant="contained" 
+                  color="secondary"
+                  fullWidth
+                  size="large"
+                  sx={{
+                    py: 1.5,
+                    fontWeight: 'medium',
+                    boxShadow: 2,
+                    '&:hover': {
+                      boxShadow: 4
+                    }
+                  }}
+                  startIcon={<SettingsIcon />}
+                >
+                  Maintenance Mode
+                </Button>
+                
+                <Button 
+                  variant="contained" 
+                  color="warning"
+                  fullWidth
+                  size="large"
+                  sx={{
+                    py: 1.5,
+                    fontWeight: 'medium',
+                    boxShadow: 2,
+                    '&:hover': {
+                      boxShadow: 4
+                    }
+                  }}
+                  startIcon={<LockIcon />}
+                  onClick={handleOpenPasswordDialog}
+                >
+                  Change Admin Password
+                </Button>
+              </Box>
+            </Paper>
+          </Grid>
+          
           {/* Recent Users Table */}
-          <Grid item xs={12} sx={{ mt: 2 }}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
+          <Grid item xs={12} md={8} sx={{ mt: { xs: 2, md: 0 } }}>
+            <Paper 
+              sx={{ 
+                p: { xs: 2, sm: 3 },
+                borderRadius: 2,
+                boxShadow: 3,
+                overflowX: 'auto'
+              }}
+              elevation={3}
+            >
+              <Typography 
+                variant="h6" 
+                gutterBottom
+                color="primary"
+                fontWeight="bold"
+                sx={{
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <PersonIcon sx={{ mr: 1 }} />
                 Recent Users
               </Typography>
               
-              <TableContainer>
+              <Divider sx={{ mb: 3 }} />
+              
+              <TableContainer
+                sx={{
+                  borderRadius: 1,
+                  '& .MuiTableCell-head': {
+                    fontWeight: 'bold',
+                    backgroundColor: (theme) => theme.palette.action.hover
+                  }
+                }}
+              >
                 <Table>
                   <TableHead>
                     <TableRow>
                       <TableCell>Username</TableCell>
                       <TableCell>Email</TableCell>
-                      <TableCell>Last Login</TableCell>
-                      <TableCell>Applications</TableCell>
-                      <TableCell>Actions</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Last Login</TableCell>
+                      <TableCell align="center">Applications</TableCell>
+                      <TableCell align="center">Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {recentUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>{user.username}</TableCell>
+                      <TableRow 
+                        key={user.id}
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: (theme) => theme.palette.action.hover
+                          }
+                        }}
+                      >
+                        <TableCell sx={{ fontWeight: 'medium' }}>{user.username}</TableCell>
                         <TableCell>{user.email}</TableCell>
-                        <TableCell>{formatDate(user.lastLogin)}</TableCell>
-                        <TableCell>{user.applications}</TableCell>
-                        <TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                          {formatDate(user.lastLogin)}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip 
+                            label={user.applications} 
+                            color={user.applications > 0 ? "primary" : "default"}
+                            size="small"
+                            sx={{ fontWeight: 'bold' }}
+                          />
+                        </TableCell>
+                        <TableCell align="center">
                           <Button 
                             startIcon={<SettingsIcon />} 
                             size="small" 
                             variant="outlined"
+                            sx={{
+                              borderRadius: 1
+                            }}
                           >
                             Manage
                           </Button>
@@ -285,30 +644,6 @@ const AdminDashboard = () => {
               </TableContainer>
             </Paper>
           </Grid>
-          
-          {/* Admin Actions */}
-          <Grid item xs={12} sx={{ mt: 2 }}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Admin Actions
-              </Typography>
-              
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                <Button variant="contained">View All Users</Button>
-                <Button variant="contained">Application Reports</Button>
-                <Button variant="contained">System Settings</Button>
-                <Button variant="contained" color="secondary">Maintenance Mode</Button>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  startIcon={<LockIcon />}
-                  onClick={handleOpenPasswordDialog}
-                >
-                  Change Admin Password
-                </Button>
-              </Box>
-            </Paper>
-          </Grid>
         </Grid>
       </Box>
       
@@ -318,83 +653,146 @@ const AdminDashboard = () => {
         onClose={handleClosePasswordDialog}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: 4,
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>Change Admin Password</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
+        <DialogTitle 
+          sx={{ 
+            background: (theme) => theme.palette.primary.main,
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            p: 2,
+            fontWeight: 'bold'
+          }}
+        >
+          <LockIcon /> Change Admin Password
+        </DialogTitle>
+        
+        <DialogContent sx={{ p: { xs: 2.5, sm: 3 }, pt: { xs: 2.5, sm: 3 } }}>
+          <DialogContentText sx={{ mb: 2.5, color: 'text.secondary' }}>
             Enter your current password and a new password to change your admin credentials.
           </DialogContentText>
           
-          <Box sx={{ mt: 2 }}>
+          <Divider sx={{ mb: 3 }} />
+          
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
               fullWidth
-              margin="dense"
+              variant="outlined"
               label="Current Password"
               type={passwordDialog.showCurrentPassword ? "text" : "password"}
               value={passwordDialog.currentPassword}
               onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
               InputProps={{
+                startAdornment: (
+                  <LockIcon color="action" sx={{ mr: 1 }} />
+                ),
                 endAdornment: (
                   <IconButton 
                     onClick={() => togglePasswordVisibility('showCurrentPassword')}
                     edge="end"
+                    aria-label={passwordDialog.showCurrentPassword ? "Hide password" : "Show password"}
                   >
                     {passwordDialog.showCurrentPassword ? 
                       <VisibilityOffIcon /> : <VisibilityIcon />}
                   </IconButton>
-                )
+                ),
+                sx: { 
+                  borderRadius: 1,
+                  py: 0.5
+                }
               }}
             />
             
             <TextField
               fullWidth
-              margin="dense"
+              variant="outlined"
               label="New Password"
               type={passwordDialog.showNewPassword ? "text" : "password"}
               value={passwordDialog.newPassword}
               onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
               InputProps={{
+                startAdornment: (
+                  <LockIcon color="action" sx={{ mr: 1 }} />
+                ),
                 endAdornment: (
                   <IconButton 
                     onClick={() => togglePasswordVisibility('showNewPassword')}
                     edge="end"
+                    aria-label={passwordDialog.showNewPassword ? "Hide password" : "Show password"}
                   >
                     {passwordDialog.showNewPassword ? 
                       <VisibilityOffIcon /> : <VisibilityIcon />}
                   </IconButton>
-                )
+                ),
+                sx: { 
+                  borderRadius: 1,
+                  py: 0.5
+                }
               }}
               helperText="Must be at least 8 characters long"
+              FormHelperTextProps={{
+                sx: { mt: 0.5 }
+              }}
             />
             
             <TextField
               fullWidth
-              margin="dense"
+              variant="outlined"
               label="Confirm New Password"
               type={passwordDialog.showConfirmPassword ? "text" : "password"}
               value={passwordDialog.confirmPassword}
               onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
               InputProps={{
+                startAdornment: (
+                  <LockIcon color="action" sx={{ mr: 1 }} />
+                ),
                 endAdornment: (
                   <IconButton 
                     onClick={() => togglePasswordVisibility('showConfirmPassword')}
                     edge="end"
+                    aria-label={passwordDialog.showConfirmPassword ? "Hide password" : "Show password"}
                   >
                     {passwordDialog.showConfirmPassword ? 
                       <VisibilityOffIcon /> : <VisibilityIcon />}
                   </IconButton>
-                )
+                ),
+                sx: { 
+                  borderRadius: 1,
+                  py: 0.5
+                }
               }}
               error={passwordDialog.newPassword !== passwordDialog.confirmPassword && 
                      passwordDialog.confirmPassword.length > 0}
               helperText={passwordDialog.newPassword !== passwordDialog.confirmPassword && 
                        passwordDialog.confirmPassword.length > 0 ? 
                        "Passwords don't match" : ""}
+              FormHelperTextProps={{
+                sx: { mt: 0.5 }
+              }}
             />
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClosePasswordDialog}>Cancel</Button>
+        
+        <DialogActions sx={{ p: 2.5, pt: 0, justifyContent: 'flex-end', gap: 1 }}>
+          <Button 
+            onClick={handleClosePasswordDialog}
+            variant="outlined"
+            sx={{ 
+              borderRadius: 1,
+              fontWeight: 'medium',
+              px: 2
+            }}
+          >
+            Cancel
+          </Button>
           <Button 
             onClick={handleChangePassword} 
             variant="contained" 
@@ -404,6 +802,17 @@ const AdminDashboard = () => {
                      !passwordDialog.newPassword ||
                      !passwordDialog.confirmPassword ||
                      passwordDialog.newPassword !== passwordDialog.confirmPassword}
+            startIcon={passwordDialog.loading ? null : <LockIcon />}
+            sx={{ 
+              borderRadius: 1,
+              fontWeight: 'medium',
+              boxShadow: 2,
+              px: 2,
+              '&:hover': {
+                boxShadow: 4
+              }
+            }}
+            aria-label="Change password"
           >
             {passwordDialog.loading ? <CircularProgress size={24} /> : "Change Password"}
           </Button>
@@ -416,11 +825,17 @@ const AdminDashboard = () => {
         autoHideDuration={6000} 
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={{ mb: { xs: 7, sm: 2 } }} // Adjusted for mobile bottom navigation
       >
         <Alert 
           onClose={handleCloseSnackbar} 
           severity={snackbar.severity}
           variant="filled"
+          sx={{ 
+            width: '100%',
+            boxShadow: 3,
+            borderRadius: 1
+          }}
         >
           {snackbar.message}
         </Alert>
