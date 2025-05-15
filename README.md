@@ -48,7 +48,7 @@ An AI-powered job application system that automates resume parsing, job searchin
 
 2. Access the application:
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000/api
+   - Backend API: http://localhost:5001/api
 
 ### Manual Setup
 
@@ -64,7 +64,7 @@ An AI-powered job application system that automates resume parsing, job searchin
 
 2. Run the Flask development server:
    ```
-   flask run
+   flask run --port=5001
    ```
 
 #### Frontend
