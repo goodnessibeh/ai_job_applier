@@ -28,7 +28,6 @@ def save_settings():
         
         # User can change their display name if provided
         if 'user' in data and 'display_name' in data['user']:
-            # This would need to be added to the User model
             user = current_user
             user.display_name = data['user']['display_name']
         
@@ -199,27 +198,32 @@ def get_system_settings():
             'has_key': bool(Config.ANTHROPIC_API_KEY),
             'key_placeholder': '(API key set)'
         },
-        'linkedin': {
-            'enabled': bool(Config.LINKEDIN_CLIENT_ID and Config.LINKEDIN_CLIENT_SECRET),
-            'client_id': Config.LINKEDIN_CLIENT_ID,
-            'client_secret': mask_api_key(Config.LINKEDIN_CLIENT_SECRET),
-            'has_secret': bool(Config.LINKEDIN_CLIENT_SECRET),
-            'secret_placeholder': '(Client secret set)',
-            'redirect_uri': Config.LINKEDIN_REDIRECT_URI
-        },
-        'indeed': {
-            'enabled': bool(Config.INDEED_PUBLISHER_ID and Config.INDEED_API_KEY),
-            'publisher_id': Config.INDEED_PUBLISHER_ID,
-            'api_key': mask_api_key(Config.INDEED_API_KEY),
-            'has_key': bool(Config.INDEED_API_KEY),
+        'rapidapi': {
+            'enabled': bool(Config.RAPIDAPI_KEY),
+            'api_key': mask_api_key(Config.RAPIDAPI_KEY),
+            'has_key': bool(Config.RAPIDAPI_KEY),
             'key_placeholder': '(API key set)'
         },
-        'glassdoor': {
-            'enabled': bool(Config.GLASSDOOR_PARTNER_ID and Config.GLASSDOOR_API_KEY),
-            'partner_id': Config.GLASSDOOR_PARTNER_ID,
-            'api_key': mask_api_key(Config.GLASSDOOR_API_KEY),
-            'has_key': bool(Config.GLASSDOOR_API_KEY),
-            'key_placeholder': '(API key set)'
+        'job_apis': {
+            'indeed': {'enabled': True, 'host': Config.INDEED_API_HOST},
+            'upwork': {'enabled': True, 'host': Config.UPWORK_API_HOST},
+            'google': {'enabled': True, 'host': Config.GOOGLE_JOBS_API_HOST},
+            'workday': {'enabled': True, 'host': Config.WORKDAY_JOBS_API_HOST},
+            'glassdoor': {'enabled': True, 'host': Config.GLASSDOOR_API_HOST},
+            'startup': {'enabled': True, 'host': Config.STARTUP_JOBS_API_HOST},
+            'job_search': {'enabled': True, 'host': Config.JOB_SEARCH_API_HOST},
+            'internships': {'enabled': True, 'host': Config.INTERNSHIPS_API_HOST},
+            'active_jobs': {'enabled': True, 'host': Config.ACTIVE_JOBS_API_HOST},
+            'indeed_api': {'enabled': True, 'host': Config.INDEED_JOBS_API_HOST},
+            'jobs_api': {'enabled': True, 'host': Config.JOBS_API_HOST},
+            'linkedin_search': {'enabled': True, 'host': Config.LINKEDIN_JOB_SEARCH_API_HOST},
+            'linkedin_job': {'enabled': True, 'host': Config.LINKEDIN_JOB_API_HOST},
+            'google_jobs': {'enabled': True, 'host': Config.GOOGLE_JOBS_API2_HOST},
+            'workday_jobs': {'enabled': True, 'host': Config.WORKDAY_JOBS_API2_HOST},
+            'glassdoor_jobs': {'enabled': True, 'host': Config.GLASSDOOR_JOBS_API2_HOST},
+            'startup_jobs': {'enabled': True, 'host': Config.STARTUP_JOBS_API2_HOST},
+            'job_search_api': {'enabled': True, 'host': Config.JOB_SEARCH_API2_HOST},
+            'hiring_manager': {'enabled': True, 'host': Config.HIRING_MANAGER_API_HOST}
         },
         'application': {
             'simulation_mode': Config.SIMULATION_MODE,

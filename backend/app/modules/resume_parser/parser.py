@@ -18,31 +18,175 @@ def parse_resume(file):
     file_ext = os.path.splitext(filename)[1].lower()
     
     if file_ext == '.pdf':
-        text = _extract_text_from_pdf(file)
+        text, formatted_text = _extract_text_from_pdf(file)
     elif file_ext == '.docx':
-        text = _extract_text_from_docx(file)
+        text, formatted_text = _extract_text_from_docx(file)
     else:
         raise ValueError(f'Unsupported file format: {file_ext}')
     
     # Parse the extracted text
     parsed_data = _parse_resume_text(text)
+    
+    # Add the raw text with formatting preserved
+    parsed_data['raw_text'] = text
+    parsed_data['formatted_text'] = formatted_text
+    
     return parsed_data
 
 def _extract_text_from_pdf(file):
-    """Extract text from a PDF file"""
+    """Extract text from a PDF file
+    
+    Returns:
+        tuple: (plain text, formatted text with preserved structure)
+    """
     reader = PyPDF2.PdfReader(file)
-    text = ''
+    plain_text = ''
+    formatted_text = []
+    
     for page in reader.pages:
-        text += page.extract_text()
-    return text
+        page_text = page.extract_text()
+        plain_text += page_text
+        
+        # Process text to preserve structure
+        page_sections = []
+        current_section = []
+        for line in page_text.split('\n'):
+            # Detect if line is a bullet point
+            is_bullet = line.strip().startswith('•') or line.strip().startswith('-') or line.strip().startswith('*')
+            is_bullet = is_bullet or re.match(r'^\s*\d+\.', line.strip()) is not None  # Numbered bullets
+            
+            # If empty line, start a new paragraph
+            if not line.strip():
+                if current_section:
+                    page_sections.append({
+                        'type': 'paragraph',
+                        'content': '\n'.join(current_section)
+                    })
+                    current_section = []
+            # If bullet point, add as a list item
+            elif is_bullet:
+                # If we were in a paragraph, finish it
+                if current_section and not current_section[0].strip().startswith(('•', '-', '*')) and not re.match(r'^\s*\d+\.', current_section[0].strip()):
+                    page_sections.append({
+                        'type': 'paragraph',
+                        'content': '\n'.join(current_section)
+                    })
+                    current_section = []
+                    
+                # Start a new bullet point or add to existing bullet list
+                if not current_section:
+                    current_section.append(line)
+                elif current_section[0].strip().startswith(('•', '-', '*')) or re.match(r'^\s*\d+\.', current_section[0].strip()):
+                    current_section.append(line)
+                else:
+                    page_sections.append({
+                        'type': 'paragraph',
+                        'content': '\n'.join(current_section)
+                    })
+                    current_section = [line]
+            else:
+                # Regular paragraph line
+                current_section.append(line)
+                
+        # Add any remaining content
+        if current_section:
+            if current_section[0].strip().startswith(('•', '-', '*')) or re.match(r'^\s*\d+\.', current_section[0].strip()):
+                page_sections.append({
+                    'type': 'bullet_list',
+                    'items': current_section
+                })
+            else:
+                page_sections.append({
+                    'type': 'paragraph',
+                    'content': '\n'.join(current_section)
+                })
+            
+        formatted_text.extend(page_sections)
+    
+    return plain_text, formatted_text
 
 def _extract_text_from_docx(file):
-    """Extract text from a DOCX file"""
+    """Extract text from a DOCX file
+    
+    Returns:
+        tuple: (plain text, formatted text with preserved structure)
+    """
     doc = docx.Document(file)
-    text = ''
+    plain_text = ''
+    formatted_text = []
+    
+    # Process paragraphs to identify bullets and sections
+    current_section = []
+    current_section_type = None
+    
     for para in doc.paragraphs:
-        text += para.text + '\n'
-    return text
+        plain_text += para.text + '\n'
+        
+        # Skip empty paragraphs
+        if not para.text.strip():
+            # If we have content in the current section, add it
+            if current_section:
+                if current_section_type == 'bullet_list':
+                    formatted_text.append({
+                        'type': 'bullet_list',
+                        'items': current_section
+                    })
+                else:
+                    formatted_text.append({
+                        'type': 'paragraph',
+                        'content': '\n'.join(current_section)
+                    })
+                current_section = []
+                current_section_type = None
+            continue
+        
+        # Detect bullet points
+        is_bullet = False
+        if para.style.name.startswith('List'):
+            is_bullet = True
+        elif para.text.strip().startswith(('•', '-', '*')) or re.match(r'^\s*\d+\.', para.text.strip()):
+            is_bullet = True
+            
+        # If this is a bullet point
+        if is_bullet:
+            # If we were in a paragraph section, finish it
+            if current_section and current_section_type != 'bullet_list':
+                formatted_text.append({
+                    'type': 'paragraph',
+                    'content': '\n'.join(current_section)
+                })
+                current_section = []
+            
+            # Add to bullet list
+            current_section.append(para.text)
+            current_section_type = 'bullet_list'
+        else:
+            # If we were in a bullet list, finish it
+            if current_section and current_section_type == 'bullet_list':
+                formatted_text.append({
+                    'type': 'bullet_list',
+                    'items': current_section
+                })
+                current_section = []
+            
+            # Add to paragraph
+            current_section.append(para.text)
+            current_section_type = 'paragraph'
+    
+    # Add any remaining content
+    if current_section:
+        if current_section_type == 'bullet_list':
+            formatted_text.append({
+                'type': 'bullet_list',
+                'items': current_section
+            })
+        else:
+            formatted_text.append({
+                'type': 'paragraph',
+                'content': '\n'.join(current_section)
+            })
+    
+    return plain_text, formatted_text
 
 def _parse_resume_text(text):
     """Parse resume text into structured data"""

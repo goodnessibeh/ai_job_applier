@@ -7,7 +7,7 @@ An AI-powered job application system that automates resume parsing, job searchin
 - **Resume Parsing**: Upload and parse resumes in PDF or DOCX format to extract skills, experience, and other information with preserved formatting
 - **Resume Improvement**: Get AI-powered suggestions to improve your resume using OpenAI or Anthropic models
 - **Profile Pictures**: Upload and manage profile pictures for your user account
-- **Job Search**: Find relevant jobs across multiple job boards based on your skills and preferences
+- **Job Search**: Find relevant jobs across 20+ job boards and APIs based on your skills and preferences
 - **Application Customization**: Generate tailored cover letters and application responses using AI
 - **Application Automation**: Submit applications automatically to job portals when possible
 - **Application Tracking**: Keep track of all your job applications in one place
@@ -19,6 +19,7 @@ An AI-powered job application system that automates resume parsing, job searchin
 - **Frontend**: React, Material-UI
 - **Backend**: Flask (Python)
 - **AI Integration**: OpenAI API, Anthropic Claude API
+- **Job APIs**: 20+ job search APIs via RapidAPI
 - **Database**: SQLite (with migrations)
 - **Automation**: Selenium
 - **File Parsing**: PyPDF2, python-docx
@@ -111,7 +112,25 @@ An AI-powered job application system that automates resume parsing, job searchin
 
 - Automatic application submission may not work for all job portals due to CAPTCHA, login requirements, or other verification processes
 - The AI-generated cover letters and application responses should be reviewed and edited before submission
-- The job search functionality uses mock data for demonstration purposes
+
+## Job Search APIs
+
+The application integrates with multiple job search APIs through RapidAPI:
+
+- Indeed (multiple endpoints)
+- Google Jobs (multiple endpoints)
+- LinkedIn (multiple endpoints)
+- Upwork
+- Workday Jobs
+- Glassdoor Jobs
+- Startup Jobs
+- Job Search API
+- Active Jobs API
+- Jobs API
+- Internships API
+- Hiring Manager API (provides hiring manager contact information)
+
+All API keys are managed through the admin settings panel. No API keys are hardcoded in the application code.
 
 ## License
 

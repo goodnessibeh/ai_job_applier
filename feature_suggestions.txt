@@ -1,0 +1,53 @@
+# AI Job Applier - Future Feature Suggestions
+
+## 1. Job Application Templates
+- Create reusable templates for different types of job applications
+- Allow users to save successful cover letters as templates
+- Implement AI-assisted template customization for specific industries
+
+## 2. Interview Preparation
+- AI-generated interview questions based on job descriptions
+- Mock interview simulations with AI feedback
+- Company research summaries using web scraping
+
+## 3. Salary Negotiation Assistant
+- Market rate analysis based on role, location, and experience
+- AI-powered negotiation script generation
+- Counteroffer evaluation tool
+
+## 4. Application Analytics Dashboard
+- Visual analytics for application success rates
+- Keyword insights showing which skills are most requested
+- Application timeline visualization
+
+## 5. Multi-Resume Management
+- Support for multiple resumes targeting different roles
+- A/B testing of different resume versions
+- Resume tailoring recommendations for specific job postings
+
+## 6. Mobile Application
+- Develop a React Native mobile app for on-the-go job applications
+- Push notifications for application status updates
+- Resume scanning using mobile camera
+
+## 7. LinkedIn Integration
+- One-click application to LinkedIn jobs
+- Import LinkedIn profile data to create/update resume
+- Share application milestones on LinkedIn
+
+## 8. Networking Tools
+- Identify potential networking contacts at target companies
+- Generate personalized networking messages
+- Track networking interactions and follow-ups
+
+## 9. Career Progression Planning
+- AI-suggested skill development paths based on career goals
+- Learning resource recommendations
+- Career milestone tracking
+
+## 10. Chrome Extension
+- Apply directly from job boards with auto-form filling
+- Job description analysis while browsing
+- One-click save jobs to your application pipeline
+
+Date created: May 15, 2025

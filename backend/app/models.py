@@ -18,6 +18,20 @@ class User(db.Model, UserMixin):
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
     last_login = db.Column(db.DateTime, nullable=True)
     
+    # Profile picture information
+    profile_picture = db.Column(db.String(512), nullable=True)  # Path to the profile picture file
+    profile_picture_type = db.Column(db.String(50), nullable=True)  # File type (e.g., 'image/jpeg', 'image/png')
+    profile_picture_updated_at = db.Column(db.DateTime, nullable=True)  # When the profile picture was last updated
+    
+    # Job search preferences
+    job_titles = db.Column(db.Text, nullable=True)  # Comma-separated list of job titles
+    min_salary = db.Column(db.Integer, nullable=True)  # Minimum salary expectation
+    max_commute_distance = db.Column(db.Integer, nullable=True)  # Maximum commute distance in miles
+    preferred_locations = db.Column(db.Text, nullable=True)  # Comma-separated list of preferred locations
+    remote_only = db.Column(db.Boolean, default=False)  # Whether user wants remote-only jobs
+    auto_apply_enabled = db.Column(db.Boolean, default=False)  # Whether to automatically apply to matching jobs
+    minimum_match_score = db.Column(db.Integer, default=70)  # Minimum match score (0-100) for auto-apply
+    
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
         
@@ -31,6 +45,44 @@ class User(db.Model, UserMixin):
     def clear_reset_token(self):
         self.reset_token = None
         self.reset_token_expiry = None
+    
+    def set_profile_picture(self, file_path, file_type):
+        """Set or update the user's profile picture"""
+        self.profile_picture = file_path
+        self.profile_picture_type = file_type
+        self.profile_picture_updated_at = datetime.datetime.utcnow()
+    
+    def get_profile_picture_url(self):
+        """Get the profile picture URL or return a default if none is set"""
+        if self.profile_picture:
+            return f"/api/user/profile-picture/{self.id}"
+        return "/static/default-profile.png"
+    
+    def get_job_titles_list(self):
+        """Get job titles as a list"""
+        if not self.job_titles:
+            return []
+        return [title.strip() for title in self.job_titles.split(',')]
+    
+    def set_job_titles_list(self, titles):
+        """Set job titles from a list"""
+        if not titles:
+            self.job_titles = None
+        else:
+            self.job_titles = ','.join(titles)
+    
+    def get_preferred_locations_list(self):
+        """Get preferred locations as a list"""
+        if not self.preferred_locations:
+            return []
+        return [location.strip() for location in self.preferred_locations.split(',')]
+    
+    def set_preferred_locations_list(self, locations):
+        """Set preferred locations from a list"""
+        if not locations:
+            self.preferred_locations = None
+        else:
+            self.preferred_locations = ','.join(locations)
         
     @property
     def full_name(self):
@@ -66,14 +118,7 @@ class UserSettings(db.Model):
     # API keys - encrypted
     _anthropic_api_key = db.Column('anthropic_api_key', db.String(512), nullable=True)
     _openai_api_key = db.Column('openai_api_key', db.String(512), nullable=True)
-    
-    # Job portal settings - encrypted
-    _linkedin_client_id = db.Column('linkedin_client_id', db.String(512), nullable=True)
-    _linkedin_client_secret = db.Column('linkedin_client_secret', db.String(512), nullable=True)
-    _indeed_publisher_id = db.Column('indeed_publisher_id', db.String(512), nullable=True)
-    _indeed_api_key = db.Column('indeed_api_key', db.String(512), nullable=True)
-    _glassdoor_partner_id = db.Column('glassdoor_partner_id', db.String(512), nullable=True)
-    _glassdoor_api_key = db.Column('glassdoor_api_key', db.String(512), nullable=True)
+    _rapidapi_key = db.Column('rapidapi_key', db.String(512), nullable=True)
     
     # Application settings
     max_applications_per_day = db.Column(db.Integer, default=10)
@@ -81,9 +126,17 @@ class UserSettings(db.Model):
     # Default platform settings
     use_anthropic = db.Column(db.Boolean, default=True)
     use_openai = db.Column(db.Boolean, default=False)
-    use_linkedin = db.Column(db.Boolean, default=True)
+    
+    # Job API preferences
     use_indeed = db.Column(db.Boolean, default=True)
+    use_upwork = db.Column(db.Boolean, default=True)
+    use_google_jobs = db.Column(db.Boolean, default=True)
+    use_workday = db.Column(db.Boolean, default=True)
     use_glassdoor = db.Column(db.Boolean, default=True)
+    use_startup_jobs = db.Column(db.Boolean, default=True)
+    use_job_search = db.Column(db.Boolean, default=True)
+    use_internships = db.Column(db.Boolean, default=True)
+    use_active_jobs = db.Column(db.Boolean, default=True)
     
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
@@ -153,52 +206,12 @@ class UserSettings(db.Model):
         self._openai_api_key = self._encrypt(value) if value else None
     
     @property
-    def linkedin_client_id(self):
-        return self._decrypt(self._linkedin_client_id)
+    def rapidapi_key(self):
+        return self._decrypt(self._rapidapi_key)
         
-    @linkedin_client_id.setter
-    def linkedin_client_id(self, value):
-        self._linkedin_client_id = self._encrypt(value) if value else None
-    
-    @property
-    def linkedin_client_secret(self):
-        return self._decrypt(self._linkedin_client_secret)
-        
-    @linkedin_client_secret.setter
-    def linkedin_client_secret(self, value):
-        self._linkedin_client_secret = self._encrypt(value) if value else None
-    
-    @property
-    def indeed_publisher_id(self):
-        return self._decrypt(self._indeed_publisher_id)
-        
-    @indeed_publisher_id.setter
-    def indeed_publisher_id(self, value):
-        self._indeed_publisher_id = self._encrypt(value) if value else None
-    
-    @property
-    def indeed_api_key(self):
-        return self._decrypt(self._indeed_api_key)
-        
-    @indeed_api_key.setter
-    def indeed_api_key(self, value):
-        self._indeed_api_key = self._encrypt(value) if value else None
-    
-    @property
-    def glassdoor_partner_id(self):
-        return self._decrypt(self._glassdoor_partner_id)
-        
-    @glassdoor_partner_id.setter
-    def glassdoor_partner_id(self, value):
-        self._glassdoor_partner_id = self._encrypt(value) if value else None
-    
-    @property
-    def glassdoor_api_key(self):
-        return self._decrypt(self._glassdoor_api_key)
-        
-    @glassdoor_api_key.setter
-    def glassdoor_api_key(self, value):
-        self._glassdoor_api_key = self._encrypt(value) if value else None
+    @rapidapi_key.setter
+    def rapidapi_key(self, value):
+        self._rapidapi_key = self._encrypt(value) if value else None
 
 
 class ApplicationHistory(db.Model):
@@ -214,8 +227,13 @@ class ApplicationHistory(db.Model):
     platform = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
     
+    # Match details
+    match_score = db.Column(db.Integer, nullable=True)  # 0-100 score indicating match quality
+    match_reasons = db.Column(db.Text, nullable=True)  # JSON string containing match reasons
+    auto_applied = db.Column(db.Boolean, default=False)  # Whether job was auto-applied for
+    
     # Application details
-    application_type = db.Column(db.String(100), nullable=False)  # 'easy_apply' or 'external'
+    application_type = db.Column(db.String(100), nullable=False)  # 'easy_apply', 'external', or 'manual'
     success = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     message = db.Column(db.Text, nullable=True)
