@@ -1,0 +1,16 @@
+{
+  "name": "CareerPilot Frontend",
+  "description": "React frontend for the CareerPilot AI job application system",
+  "repository": "https://github.com/goodnessibeh/ai_job_applier",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "PROJECT_PATH": {
+      "description": "Path to the frontend code",
+      "value": "frontend"
+    }
+  }
+}
